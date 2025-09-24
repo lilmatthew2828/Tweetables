@@ -1,0 +1,4 @@
+admin,password
+machew,1234
+wata,juice
+glock,coma
