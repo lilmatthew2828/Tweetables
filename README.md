@@ -54,10 +54,12 @@ Exit out of application once done searching for topics
 - Results are then finally displayed and export option are given 
 
 ## 5) **Credits**
-- Sydney Johnson 
-- Micaiah Steplight 
-- Amir Crutchfield
-- Isaac Stinnette 
-- Ada Bulgur 
+- Brian Csehoski
+- Aris Hill
+- Derrick Hollie
+- Daniel Ufua
+- Masoma Ngonde Ekoi
+- Tadarrio Marshall
+- Matthew Kilaptrick 
 
 
