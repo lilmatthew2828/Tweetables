@@ -16,7 +16,7 @@ import subprocess
 import shlex
 from datetime import datetime
 # Run fetch with fallback enabled
-subprocess.run([sys.executable, "fetch_tweets.py", "python lang:en", "--scrape"])
+# subprocess.run([sys.executable, "fetch_tweets.py", "python lang:en", "--scrape"])
 import tweepy
 from twitter_setup import client # <- v2 Tweepy Client
 from langdetect import detect, LangDetectException
@@ -178,9 +178,9 @@ def fetch_tweets_twitter(keyword: str, want: int = 10):
     - Deduplicate, clean, filter to English
     - Return both plain-text list and JSONL-ready list
     """
-    want = max(1, min(want, 100))  # guard rails; API max_results per call is 100
+    want = max(1, min(want, 2))  # guard rails; API max_results per call is 100
 
-    response = client.search_recent_tweets(query=keyword, max_results=100)
+    response = client.search_recent_tweets(query=keyword, max_results=2)
     if not response or not response.data:
         return [], []
 
@@ -236,6 +236,7 @@ def main():
         use_scrape_flag = True
 
     log(f"Fetching tweets for sentiment analysis...")
+    log(f"2 we're here")
     try:
         log("Using Twitter API v2...")
         txt_lines, jsonl_records = fetch_tweets_twitter(keyword, want=count)
