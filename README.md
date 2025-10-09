@@ -7,14 +7,16 @@ This is an application that uses Twitter data in order to build a sentiment anal
 
 ## **Table of Contents**
 1)  Tools
+2) Pip Installs:
+3) 
     
-2)  How to Install and Run
+4)  How to Install and Run
     
-3) How to Use
+5) How to Use
     
-4)  How it works
+6)  How it works
     
-5) Credits
+7) Credits
 
 ## 1) **Tools**
 - Visual Studio Code
