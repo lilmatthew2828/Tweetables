@@ -1,0 +1,9 @@
+admin,password
+machew,1234
+wata,juice
+glock,comakilla,whale
+killa,whale
+john,smith
+johnny,mac
+Habibi,123
+Malcom,jim
