@@ -5,6 +5,7 @@ import subprocess
 import os
 import sys
 import tkinter.messagebox
+from neo4j import GraphDatabase
 
 #USER.TXT IS MASSIVELY IMPORTANT FOR LOGGING IN. 
 #MY GOAL IS TOO MAKE SO IT CAN HOLD A NUMBER OF VARIOUS POSSIBLE LOGIN CREDNETIALS TOO MAKE THIS MORE REALISTIC 
@@ -14,6 +15,12 @@ USERS_FILE = os.path.join(BASE_DIR, "users.txt")
 SCRIPT_DIR = BASE_DIR  # folder containing this Main.py and the other scripts
 NLTK_DIR = os.path.join(SCRIPT_DIR, "nltk_data")
 os.makedirs(NLTK_DIR, exist_ok=True)
+
+#We will evenutally need to remove this and like save it somewhere safe but these are here for now
+URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
+AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
+
+CURRENT_USER = None
 
 def _subprocess_env():
     # Add NLTK_DATA so both child scripts find/download data in-project
@@ -56,6 +63,7 @@ class LoginScreen:
 
         if self.check_credentials(username, password):
             self.message_label.config(text="Login successful!", fg="green") #if the login credentials are correct
+            CURRENT_USER = username
             self.open_sentiment_analysis()
         else:
             self.message_label.config(text="Username or password is wrong", fg="red") # if those crendentials are incorrect
@@ -81,6 +89,21 @@ class LoginScreen:
                     stored_pass = parts[1].strip()
 
                     if stored_user == username and stored_pass == password:
+                        def check_credentials2(driver, username, password):
+                            query = """
+                                MATCH (u:USER {username: $username, password: $password})
+                                RETURN u.username AS username
+                                """
+                            records, summary, key = driver.execute_query(query, username=username, password=password)
+                            if len(records) == 0:
+                                print("No matching user found.")
+                            else:
+                                print("User found")
+                        
+                        with GraphDatabase.driver(URI, auth=AUTH) as driver:
+                            driver.verify_connectivity()
+                            check_credentials2(driver, username, password)
+                            driver.close()
                         return True
         except FileNotFoundError:
             tk.messagebox.showerror("Error", "No users found. Please Sign Up first.")
@@ -142,6 +165,20 @@ class LoginScreen:
                 # 3) Append the new user (this was previously inside the except!)
                 with open(USERS_FILE, "a", encoding="utf-8") as file:
                     file.write(f"{username},{password}\n")
+
+                def create_account(driver, username, password):
+                    query = """
+                        CREATE (u:USER {username: $username, password: $password})
+                        WITH u
+                        MATCH (y:USERS) 
+                        MERGE (u)-[:IS_A]->(y)
+                    """
+                    driver.execute_query(query, username=username, password=password)
+                
+                with GraphDatabase.driver(URI, auth=AUTH) as driver:
+                    driver.verify_connectivity()
+                    create_account(driver, username, password)
+                    driver.close()
 
                 tk.messagebox.showinfo("Success", "Account created. You can log in now.")
                 signup_window.destroy()
