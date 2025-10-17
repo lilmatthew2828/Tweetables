@@ -113,7 +113,7 @@ class LoginScreen:
     def open_signup(self): #method for user sign up process. Needs ode tweaking 
         signup_window = tk.Toplevel(self.master)
         signup_window.title("Sign Up")
-        signup_window.geometry("350x200")
+        signup_window.geometry("450x450")
         signup_window.configure(bg="#ADD8E6")
 
         frame = tk.Frame(signup_window, bg="#ADD8E6", padx=20, pady=20)
@@ -126,6 +126,31 @@ class LoginScreen:
         tk.Label(frame, text="New Password:", font=("Arial", 12), bg="#ADD8E6").grid(row=1, column=0, sticky="w", pady=5)
         new_password = tk.Entry(frame, font=("Arial", 12), show="*")
         new_password.grid(row=1, column=1, pady=5, padx=10)
+
+        tk.Label(frame, text="Re-enter New Password:", font=("Arial", 12), bg="#ADD8E6").grid(row=2, column=0, sticky="w", pady=5)
+        new_password_again = tk.Entry(frame, font=("Arial", 12), show="*")
+        new_password_again.grid(row=2, column=1, pady=5, padx=10)
+
+        tk.Label(frame, text="Enter API Key:", font=("Arial", 12), bg="#ADD8E6").grid(row=3, column=0, sticky="w", pady=5)
+        api_key = tk.Entry(frame, font=("Arial", 12), show="*")
+        api_key.grid(row=3, column=1, pady=5, padx=10)
+
+        tk.Label(frame, text="Enter API Secret:", font=("Arial", 12), bg="#ADD8E6").grid(row=4, column=0, sticky="w", pady=5)
+        api_secret = tk.Entry(frame, font=("Arial", 12), show="*")
+        api_secret.grid(row=4, column=1, pady=5, padx=10)
+
+        tk.Label(frame, text="Enter Access Token:", font=("Arial", 12), bg="#ADD8E6").grid(row=5, column=0, sticky="w", pady=5)
+        access_token = tk.Entry(frame, font=("Arial", 12), show="*")
+        access_token.grid(row=5, column=1, pady=5, padx=10)
+        
+        tk.Label(frame, text="Enter Access Secret:", font=("Arial", 12), bg="#ADD8E6").grid(row=6, column=0, sticky="w", pady=5)
+        access_secret = tk.Entry(frame, font=("Arial", 12), show="*")
+        access_secret.grid(row=6, column=1, pady=5, padx=10)
+
+        tk.Label(frame, text="Enter Bearer Token:", font=("Arial", 12), bg="#ADD8E6").grid(row=7, column=0, sticky="w", pady=5)
+        bearer_token = tk.Entry(frame, font=("Arial", 12), show="*")
+        bearer_token.grid(row=7, column=1, pady=5, padx=10)
+
 #=================================================================================================================================================================================================
         def save_credentials():
             username = new_username.get().strip()
@@ -187,7 +212,7 @@ class LoginScreen:
                 tk.messagebox.showerror("Error", f"Could not save credentials:\n{e}")
 
         signup_button = tk.Button(frame, text="Sign Up", command=save_credentials, font=("Arial", 12), bg="white", fg="black", padx=10, pady=5)
-        signup_button.grid(row=2, columnspan=2, pady=10)
+        signup_button.grid(row=8, columnspan=2, pady=10)
 #=================================================================================================================================================================================================
 
     def open_sentiment_analysis(self):
