@@ -6,6 +6,12 @@ import os
 import sys
 import tkinter.messagebox
 from neo4j import GraphDatabase
+import tweepy
+import bcrypt
+from cryptography.fernet import Fernet
+from dotenv import load_dotenv
+
+load_dotenv()
 
 #USER.TXT IS MASSIVELY IMPORTANT FOR LOGGING IN. 
 #MY GOAL IS TOO MAKE SO IT CAN HOLD A NUMBER OF VARIOUS POSSIBLE LOGIN CREDNETIALS TOO MAKE THIS MORE REALISTIC 
@@ -71,44 +77,24 @@ class LoginScreen:
             self.password_entry.delete(0, tk.END)
 
     def check_credentials(self, username, password): # Fixed This as well You hit this because some lines in users.txt have more than one comma, so
-        try:
-            with open(USERS_FILE, "r", encoding="utf-8") as file:
-                for raw in file:
-                    line = raw.strip()
-                    if not line:
-                        continue                      # skip blanks
-                    if line.startswith("#"):
-                        continue                      # allow comments
+        
+        passwordBytes = password.encode('utf-8')
 
-                    # split only once: username , password-with-commas-allowed
-                    parts = line.split(",", 1)
-                    if len(parts) < 2:
-                        continue                      # skip malformed lines
-
-                    stored_user = parts[0].strip()
-                    stored_pass = parts[1].strip()
-
-                    if stored_user == username and stored_pass == password:
-                        def check_credentials2(driver, username, password):
-                            query = """
-                                MATCH (u:USER {username: $username, password: $password})
-                                RETURN u.username AS username
-                                """
-                            records, summary, key = driver.execute_query(query, username=username, password=password)
-                            if len(records) == 0:
-                                print("No matching user found.")
-                            else:
-                                print("User found")
+        def check_credentials2(driver, username):
+            query = """
+                MATCH (u:USER {username: $username})
+                RETURN u.hashed_password AS user_password
+            """
+            records, summary, key = driver.execute_query(query, username=username)
+            return bcrypt.checkpw(passwordBytes, records[0]["user_password"])
                         
-                        with GraphDatabase.driver(URI, auth=AUTH) as driver:
-                            driver.verify_connectivity()
-                            check_credentials2(driver, username, password)
-                            driver.close()
-                        return True
-        except FileNotFoundError:
-            tk.messagebox.showerror("Error", "No users found. Please Sign Up first.")
-            return False
-        return False
+        with GraphDatabase.driver(URI, auth=AUTH) as driver:
+            driver.verify_connectivity()
+            value = check_credentials2(driver, username)
+            driver.close()
+
+        return value
+
 
     def open_signup(self): #method for user sign up process. Needs ode tweaking 
         signup_window = tk.Toplevel(self.master)
@@ -132,29 +118,29 @@ class LoginScreen:
         new_password_again.grid(row=2, column=1, pady=5, padx=10)
 
         tk.Label(frame, text="Enter API Key:", font=("Arial", 12), bg="#ADD8E6").grid(row=3, column=0, sticky="w", pady=5)
-        api_key = tk.Entry(frame, font=("Arial", 12), show="*")
-        api_key.grid(row=3, column=1, pady=5, padx=10)
+        new_api_key = tk.Entry(frame, font=("Arial", 12), show="*")
+        new_api_key.grid(row=3, column=1, pady=5, padx=10)
 
         tk.Label(frame, text="Enter API Secret:", font=("Arial", 12), bg="#ADD8E6").grid(row=4, column=0, sticky="w", pady=5)
-        api_secret = tk.Entry(frame, font=("Arial", 12), show="*")
-        api_secret.grid(row=4, column=1, pady=5, padx=10)
+        new_api_secret = tk.Entry(frame, font=("Arial", 12), show="*")
+        new_api_secret.grid(row=4, column=1, pady=5, padx=10)
 
         tk.Label(frame, text="Enter Access Token:", font=("Arial", 12), bg="#ADD8E6").grid(row=5, column=0, sticky="w", pady=5)
-        access_token = tk.Entry(frame, font=("Arial", 12), show="*")
-        access_token.grid(row=5, column=1, pady=5, padx=10)
+        new_access_token = tk.Entry(frame, font=("Arial", 12), show="*")
+        new_access_token.grid(row=5, column=1, pady=5, padx=10)
         
         tk.Label(frame, text="Enter Access Secret:", font=("Arial", 12), bg="#ADD8E6").grid(row=6, column=0, sticky="w", pady=5)
-        access_secret = tk.Entry(frame, font=("Arial", 12), show="*")
-        access_secret.grid(row=6, column=1, pady=5, padx=10)
+        new_access_secret = tk.Entry(frame, font=("Arial", 12), show="*")
+        new_access_secret.grid(row=6, column=1, pady=5, padx=10)
 
         tk.Label(frame, text="Enter Bearer Token:", font=("Arial", 12), bg="#ADD8E6").grid(row=7, column=0, sticky="w", pady=5)
-        bearer_token = tk.Entry(frame, font=("Arial", 12), show="*")
-        bearer_token.grid(row=7, column=1, pady=5, padx=10)
+        new_bearer_token = tk.Entry(frame, font=("Arial", 12), show="*")
+        new_bearer_token.grid(row=7, column=1, pady=5, padx=10)
 
 #=================================================================================================================================================================================================
         def save_credentials():
-            username = new_username.get().strip()
-            password = new_password.get().strip()
+            username = new_username.get()
+            password = new_password.get()
 
             # Basic validation
             if not username or not password:
@@ -163,53 +149,84 @@ class LoginScreen:
             if "," in username or "," in password:
                 tk.messagebox.showerror("Error", "Commas are not allowed in username or password.")
                 return
-
-            try:
-                # 1) Ensure the file exists
-                if not os.path.exists(USERS_FILE):
-                    with open(USERS_FILE, "w", encoding="utf-8"):
-                        pass
-
-                # 2) Check duplicates safely (skip malformed/blank lines)
-                existing = set()
-                with open(USERS_FILE, "r", encoding="utf-8") as file:
-                    for line in file:
-                        line = line.strip()
-                        if not line:
-                            continue
-                        parts = line.split(",")
-                        if len(parts) < 2:
-                            continue
-                        stored_user = parts[0]
-                        existing.add(stored_user)
-
-                if username in existing:
+            
+            # Fucntion to check if username already exists in the database
+            def check_exists(driver, username):
+                query = """
+                    MATCH (u:USER {username: $username})
+                    RETURN COUNT(u) AS user_count
+                    """
+                records, summary, key = driver.execute_query(query, username=username)
+                existing = records[0]["user_count"]
+                if existing == 0:
+                    return False
+                else:
+                    return True
+            
+            # Execute the query to check for existing username
+            with GraphDatabase.driver(URI, auth=AUTH) as driver:
+                driver.verify_connectivity()
+                if check_exists(driver, username):
                     tk.messagebox.showerror("Error", "Username already exists.")
                     return
+                driver.close()
+            
+            # Check if passwords match
+            if password != new_password_again.get():
+                tk.messagebox.showerror("Error", "Passwords do not match.")
+                return
+            
+            api_key = new_api_key.get()
+            api_secret = new_api_secret.get()
+            access_token = new_access_token.get()
+            access_secret = new_access_secret.get()
+            bearer_token = new_bearer_token.get()
 
-                # 3) Append the new user (this was previously inside the except!)
-                with open(USERS_FILE, "a", encoding="utf-8") as file:
-                    file.write(f"{username},{password}\n")
+            # Validate Twitter API credentials
+            auth = tweepy.OAuthHandler(api_key, api_secret)
+            auth.set_access_token(access_token, access_secret)
 
-                def create_account(driver, username, password):
-                    query = """
-                        CREATE (u:USER {username: $username, password: $password})
-                        WITH u
-                        MATCH (y:USERS) 
-                        MERGE (u)-[:IS_A]->(y)
-                    """
-                    driver.execute_query(query, username=username, password=password)
-                
-                with GraphDatabase.driver(URI, auth=AUTH) as driver:
-                    driver.verify_connectivity()
-                    create_account(driver, username, password)
-                    driver.close()
+            api = tweepy.API(auth, wait_on_rate_limit=True)
 
-                tk.messagebox.showinfo("Success", "Account created. You can log in now.")
-                signup_window.destroy()
-
+            try:
+                api.verify_credentials()
             except Exception as e:
-                tk.messagebox.showerror("Error", f"Could not save credentials:\n{e}")
+                tk.messagebox.showerror("Error", f"Twitter API authentication failed: {e}")
+                return
+            
+            # Encrypt password before saving with one-way bcrypt hashing
+            bytes = password.encode('utf-8')
+            salt = bcrypt.gensalt()
+            hashed_password = bcrypt.hashpw(bytes, salt)
+
+            # Encrypt all API credentials before saving with two-way Fernet encryption
+            key = os.getenv("MASTER_KEY")
+            f = Fernet(key)
+            enc_api_key = f.encrypt(api_key.encode())
+            enc_api_secret = f.encrypt(api_secret.encode())
+            enc_access_token = f.encrypt(access_token.encode())
+            enc_access_secret = f.encrypt(access_secret.encode())
+            enc_bearer_token = f.encrypt(bearer_token.encode())
+
+            # Create the function to add new user to the database
+            def create_account(driver, username, hashed_password, enc_api_key, enc_api_secret, enc_access_token, enc_access_secret, enc_bearer_token):
+                query = """
+                    CREATE (u:USER {username: $username, hashed_password: $hashed_password, enc_api_key: $enc_api_key, enc_api_secret: $enc_api_secret, enc_access_token: $enc_access_token, enc_access_secret: $enc_access_secret, enc_bearer_token: $enc_bearer_token})
+                    WITH u
+                    MATCH (y:USERS) 
+                    MERGE (u)-[:IS_A]->(y)
+                """
+                driver.execute_query(query, username=username, hashed_password=hashed_password, enc_api_key=enc_api_key, enc_api_secret=enc_api_secret, enc_access_token=enc_access_token, enc_access_secret=enc_access_secret, enc_bearer_token=enc_bearer_token)
+            
+            # Run the function to create the account
+            with GraphDatabase.driver(URI, auth=AUTH) as driver:
+                driver.verify_connectivity()
+                create_account(driver, username, hashed_password, enc_api_key, enc_api_secret, enc_access_token, enc_access_secret, enc_bearer_token)
+                driver.close()
+
+            tk.messagebox.showinfo("Success", "Account created. You can log in now.")
+            signup_window.destroy()
+
 
         signup_button = tk.Button(frame, text="Sign Up", command=save_credentials, font=("Arial", 12), bg="white", fg="black", padx=10, pady=5)
         signup_button.grid(row=8, columnspan=2, pady=10)
