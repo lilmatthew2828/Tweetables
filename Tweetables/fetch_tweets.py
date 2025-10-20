@@ -293,6 +293,7 @@ import json
 import shlex
 import subprocess
 from datetime import datetime
+from neo4j import GraphDatabase
 
 import tweepy
 from twitter_setup import client  # Tweepy v2 Client
@@ -324,15 +325,56 @@ def is_english(tweet_text: str) -> bool:
     except LangDetectException:
         return False
 
-def write_txt(lines):
-    with open(OUTFILE_TXT, "w", encoding="utf-8") as f:
-        for line in lines:
-            f.write(line + "\n")
+from neo4j import GraphDatabase
 
-def write_jsonl(records):
-    with open(OUTFILE_JSONL, "w", encoding="utf-8") as f:
-        for rec in records:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+# Neo4j database credentials
+URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
+AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
+
+def store_raw_tweets(records, keyword, username=None):
+    """
+    Store fetched tweets into Neo4j as :Tweet nodes.
+    
+    Each tweet will be stored with text, ID, keyword, language, and timestamp.
+    Optionally connects the tweet to a :USER node via [:FETCHED].
+    """
+
+    if not records:
+        print("⚠️ No tweet records to insert.")
+        return
+
+    # Connect to Neo4j
+    with GraphDatabase.driver(URI, auth=AUTH) as driver:
+        driver.verify_connectivity()
+
+        def insert_tweet(tx, tweet, keyword, username):
+            query = """
+                MERGE (t:Tweet {id: $id})
+                ON CREATE SET
+                    t.text = $text,
+                    t.keyword = $keyword,
+                    t.language = $language,
+                    t.created_at = datetime()
+                WITH t
+                OPTIONAL MATCH (u:USER {username: $username})
+                MERGE (u)-[:FETCHED]->(t)
+            """
+            tx.run(
+                query,
+                id=tweet.get("id"),
+                text=tweet.get("text"),
+                keyword=keyword,
+                language=tweet.get("language", "en"),
+                username=username
+            )
+
+        with driver.session() as session:
+            for tweet in records:
+                session.execute_write(insert_tweet, tweet, keyword, username)
+
+        driver.close()
+        print(f"✅ Successfully inserted {len(records)} tweets into Neo4j.")
+
 
 # ------------------------------
 # Fallback via snscrape (no API)
