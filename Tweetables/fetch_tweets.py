@@ -340,7 +340,7 @@ def store_raw_tweets(records, keyword, username=None):
     """
 
     if not records:
-        print("⚠️ No tweet records to insert.")
+        print("No tweet records to insert.")
         return
 
     # Connect to Neo4j
@@ -348,6 +348,12 @@ def store_raw_tweets(records, keyword, username=None):
         driver.verify_connectivity()
 
         def insert_tweet(tx, tweet, keyword, username):
+            """
+                Create the keyword node if it doesn't exist, (MERGE)
+                Create the raw_tweet node with the tweet
+                Create the relationship between the keyword and the tweet
+                Create the relationship between the user and the keyword
+            """
             query = """
                 MERGE (t:Tweet {id: $id})
                 ON CREATE SET
@@ -373,7 +379,7 @@ def store_raw_tweets(records, keyword, username=None):
                 session.execute_write(insert_tweet, tweet, keyword, username)
 
         driver.close()
-        print(f"✅ Successfully inserted {len(records)} tweets into Neo4j.")
+        print(f"Successfully inserted {len(records)} tweets into Neo4j.")
 
 
 # ------------------------------
@@ -474,6 +480,7 @@ def main():
         sys.exit(0)
 
     keyword = sys.argv[1]
+    username = sys.argv[2]
     count = 25
     use_scrape_flag = "--scrape" in sys.argv
 

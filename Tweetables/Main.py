@@ -307,7 +307,7 @@ class SentimentAnalysisApp:
             # --- Step 1: Fetch Tweets ---
             self.master.after(0, self.append_output, f"Fetching tweets for '{keyword}'...")
             fetch_process = subprocess.Popen(
-                [sys.executable, fetch_path, keyword],
+                [sys.executable, fetch_path, keyword, CURRENT_USER],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
