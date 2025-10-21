@@ -126,8 +126,10 @@
 # english_vocab = set(w.lower() for w in words.words())
 # spell = SpellChecker()
 
+# Slang List & Sentiment Dictionary Updated by Day Ekoi
+
 # # Slang whitelist and shorthand map
-# slang_whitelist = {"u", "dm", "rn", "pls", "idk", "lol", "brb", "gtg", "lmao", "omg", "tbh", "afaik", "imho"}
+# slang_whitelist = {"u", "dm", "rn", "pls", "idk", "lol", "brb", "gtg", "lmao", "omg", "tbh", "afaik", "imho", "af", "iykyk", "lmfao", "nbs", "ngl", "smh"}
 # shorthand_map = {
 #     "u": "you",
 #     "dm": "direct message",
@@ -141,7 +143,13 @@
 #     "omg": "oh my god",
 #     "tbh": "to be honest",
 #     "afaik": "as far as i know",
-#     "imho": "in my humble opinion"
+#     "imho": "in my humble opinion".
+#     "af": "as fuck",
+#     "iykyk": "if you know you know",
+#     "lmfao": "laughing my ass off",
+#     "nbs": "No Bullshit",
+#     "ngl": "Not going to lie",
+#     "smh": "shaking my head"
 # }
 
 # #sentiment dictionary
@@ -168,6 +176,15 @@
 #     "balanced": 3, "great-dialogue": 3, "unique": 3, "worthy": 3, "likeable": 3,
 #     "fun-ride": 3, "touching": 3, "laugh-out-loud": 3, "witty": 3, "feel-good": 3,
 
+#     # 13 additional Positive words 
+#  "Radiant": 4, "Triumphant": 5, "Delightful": 4, "Impactful": 4, "Enchanting": 4, "Invigorating": 4, 
+#  "Transformative": 5, "Heartening": 4, "Exhilarating: 5", "Exuberant": 4, "Vibrant": 4, "Jaw-dropping": 5, 
+
+
+#     #Positive AAVE/Ebonics Words
+#      "ate": 4, "bussin": 4, "chewed": 4, "fly": 3, "fye": 4, "gas": 4, "goat": 5, "its giving": 3,
+#      "lit": 4, "on point": 4, "serving": 3, "slaps": 4, "snatched": 3, "tea": 3,
+
 
 #     # Neutral Words
 #     "okay": 0, "neutral": 0, "average": 0, "decent": 1, "plain": 1,
@@ -176,6 +193,14 @@
 #     "meh": 0, "acceptable": 1, "normal": 1, "basic": 1, "regular": 1,
 #     "expected": 1, "predictable": -1, "forgettable": -1, "formulaic": -1, "plain-jane": 0, "scary": -1, "surprised": 1,
 
+#     # 8 Expanded Neutral words
+#     "unremarkable": 0, "mundane": 0, "routine": 0, "typical": 0, "uncomplicated": 1, "conventional": 1, "tolerable": 1,
+#      "generic": 0,
+
+
+#     #Neural AAVE/Ebonics Words
+#      "bet": 0, "chile": 0, "fasho": 0, "girl": 0, "gurl": 0, "gworl": 0, "highkey": 1, "ight": 0, "ite": 0, "lowkey": 0,
+#      "merch": 0, "no cap": 2, "no shade": 0, "word": 0,
 
 #     # Negative Words
 #     "mediocre": -1, "predictable": -1, "forgettable": -1, "formulaic": -1, "slow": -2,
@@ -193,7 +218,12 @@
 #     "atrocious": -5, "devastating": -5, "horrific": -5, "disgusting": -5, "hate": -5,
 #     "angry": -5, "unwatchable": -5, "nauseating": -5, "garbage": -5, "insulting": -5, "anxious": -2, "terrifying": -3,  "surprised": 1, "tense": -1, "tearjerker": 4, "beautiful": 4, "nostalgic": 1,
 
+#     # 13 Expanded Negative Words
+#     "grim": -3, "weak-plot": -3, "incoherent": -3, "meh": 0, "bleh": -1, "abysmal": -5, "dreadful": -5, "horrendous": -5, "pathetic": -4, "pitiful": -4, "chaotic": -3, "bland": -2, 
+#     "terrible-acting": -4,
 
+#     # Negative AAVE/Ebonics Words
+#      "big mad": -3, "cap": -3, "cappin": -3, "flop": -4, "mid": -2, "pressed": -2, "salty": -2, "shade": -2, "trippin": -2,
 
 #     # Strong Emotions (Positive & Negative)
 #     "love": 5, "excited": 4, "joy": 4, "funny": 4, "satisfying": 4, "enthusiastic": 4,
@@ -601,3 +631,4 @@ with open(OUT_PATH, "w", encoding="utf-8") as f:
         f.write(line + "\n")
 
 print(f"Analysis complete! Full results saved to '{OUT_PATH}'.")
+
