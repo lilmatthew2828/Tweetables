@@ -294,9 +294,9 @@ import shlex
 import subprocess
 from datetime import datetime
 from neo4j import GraphDatabase
+from Tweetables.twitter_setup import get_twitter_client
 
 import tweepy
-from twitter_setup import client  # Tweepy v2 Client
 from langdetect import detect, LangDetectException
 
 # -------------------------------------------------------------------
@@ -435,7 +435,7 @@ def run_snscrape(query: str, limit: int = 100) -> bool:
 # ------------------------------
 # Twitter API (Tweepy v2 client)
 # ------------------------------
-def fetch_tweets_twitter(keyword: str, want: int = 25):
+def fetch_tweets_twitter(keyword: str, username, want: int = 10):
     """
     Fetch recent tweets via Twitter API v2.
     - Deduplicate, clean, filter English
@@ -443,6 +443,8 @@ def fetch_tweets_twitter(keyword: str, want: int = 25):
     """
     # Twitter v2 recent search: max_results 10..100
     max_results = min(max(want, 10), 100)
+
+    client = get_twitter_client(username)
 
     response = client.search_recent_tweets(query=keyword, max_results=max_results)
     if not response or not response.data:
@@ -494,7 +496,7 @@ def main():
     log("2 we're here")
     try:
         log("Using Twitter API v2...")
-        txt_lines, jsonl_records = fetch_tweets_twitter(keyword, want=count)
+        txt_lines, jsonl_records = fetch_tweets_twitter(keyword, username, want=count)
         if txt_lines:
             write_txt(txt_lines)
             write_jsonl(jsonl_records)
