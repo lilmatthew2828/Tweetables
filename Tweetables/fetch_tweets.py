@@ -294,7 +294,7 @@ import shlex
 import subprocess
 from datetime import datetime
 from neo4j import GraphDatabase
-from Tweetables.twitter_setup import get_twitter_client
+from twitter_setup import get_twitter_client
 
 import tweepy
 from langdetect import detect, LangDetectException
@@ -497,7 +497,7 @@ def main():
 
     keyword = sys.argv[1]
     username = sys.argv[2]
-    count = 25
+    count = 10
     use_scrape_flag = "--scrape" in sys.argv
 
     if "--count" in sys.argv:
