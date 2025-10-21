@@ -327,16 +327,21 @@ def is_english(tweet_text: str) -> bool:
 
 from neo4j import GraphDatabase
 
+from neo4j import GraphDatabase
+
 # Neo4j database credentials
 URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
 AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
 
 def store_raw_tweets(records, keyword, username=None):
     """
-    Store fetched tweets into Neo4j as :Tweet nodes.
+    Store fetched tweets into Neo4j as :Tweet nodes, linking them to a :Keyword node.
     
-    Each tweet will be stored with text, ID, keyword, language, and timestamp.
-    Optionally connects the tweet to a :USER node via [:FETCHED].
+    Implements the full graph plan:
+    1. MERGE the :Tweet node.
+    2. MERGE the :Keyword node.
+    3. CREATE [:MENTIONS] relationship from :Tweet to :Keyword.
+    4. OPTIONALLY CREATE [:SEARCHED] relationship from :USER to :Keyword.
     """
 
     if not records:
@@ -344,26 +349,34 @@ def store_raw_tweets(records, keyword, username=None):
         return
 
     # Connect to Neo4j
+    # URI and AUTH are globally defined at the top of fetch_tweets1.py
     with GraphDatabase.driver(URI, auth=AUTH) as driver:
         driver.verify_connectivity()
 
         def insert_tweet(tx, tweet, keyword, username):
             """
-                Create the keyword node if it doesn't exist, (MERGE)
-                Create the raw_tweet node with the tweet
-                Create the relationship between the keyword and the tweet
-                Create the relationship between the user and the keyword
+                Implements the full graph logic using a single, efficient Cypher query.
             """
             query = """
+                // 1. Create the Tweet node
                 MERGE (t:Tweet {id: $id})
                 ON CREATE SET
                     t.text = $text,
-                    t.keyword = $keyword,
                     t.language = $language,
                     t.created_at = datetime()
-                WITH t
-                OPTIONAL MATCH (u:USER {username: $username})
-                MERGE (u)-[:FETCHED]->(t)
+
+                // 2. Create the Keyword node and 3. link the Tweet to it
+                WITH t, $keyword AS kw
+                MERGE (k:Keyword {name: kw})
+                MERGE (t)-[:MENTIONS]->(k)
+
+                // 4. Create the relationship between the user and the keyword (if username is provided)
+                WITH k, $username AS uname
+                FOREACH (
+                    i IN CASE WHEN uname IS NOT NULL THEN [1] ELSE [] END |
+                    MERGE (u:USER {username: uname})
+                    MERGE (u)-[:SEARCHED]->(k)
+                )
             """
             tx.run(
                 query,
@@ -376,6 +389,7 @@ def store_raw_tweets(records, keyword, username=None):
 
         with driver.session() as session:
             for tweet in records:
+                # Executes the transaction for each tweet
                 session.execute_write(insert_tweet, tweet, keyword, username)
 
         driver.close()
@@ -500,6 +514,7 @@ def main():
         if txt_lines:
             write_txt(txt_lines)
             write_jsonl(jsonl_records)
+            store_raw_tweets(jsonl_records, keyword, username) # store to neo4j
             _digits = len(str(len(txt_lines)))
             log("\nTweets Fetched:\n")
             for i, line in enumerate(txt_lines, 1):
