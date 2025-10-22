@@ -1,4 +1,3 @@
-
 # # === NLTK bootstrap (very top of file) ===
 # import os, re
 # import nltk
@@ -115,8 +114,6 @@
 # from nltk import word_tokenize, pos_tag
 # from nltk.corpus import wordnet
 # from spellchecker import SpellChecker
-
-
 
 
 
@@ -541,20 +538,27 @@ def clean_tweet(tweet: str) -> List[str]:
         wn_pos = get_wordnet_pos(tag)
         lemma = lemmatizer.lemmatize(w, wn_pos)
 
+        candidate = lemma
+
+        # 🔑 If lemmatization would break a known sentiment word,
+        # keep the original token instead of the lemma.
+        if (lemma not in sentiment_dict) and (w in sentiment_dict):
+            candidate = w
+
         # stopwords/vocab/spell checks (all optional-safe)
-        if lemma in stop_words:
+        if candidate in stop_words:
             continue
-        if len(lemma) <= 1 and lemma not in shorthand_map:
+        if len(candidate) <= 1 and candidate not in shorthand_map:
             continue
 
         ok_vocab = True
         if english_vocab:
-            ok_vocab = (lemma in english_vocab)
+            ok_vocab = (candidate in english_vocab)
         if not ok_vocab and spell:
-            ok_vocab = (spell.correction(lemma) == lemma)
+            ok_vocab = (spell.correction(candidate) == candidate)
 
         if ok_vocab:
-            cleaned.append(lemma)
+            cleaned.append(candidate)
 
     return cleaned
 
@@ -568,36 +572,92 @@ def analyze_sentiment(tokens: List[str]) -> Tuple[str, int]:
     return "Neutral", score
 
 # ---------- Load, process, save ----------
-if not os.path.exists(RAW_PATH):
-    raise FileNotFoundError(f"raw_tweets.txt not found at {RAW_PATH}")
+# (Replaced: file I/O → Neo4j integration)
+from neo4j import GraphDatabase
 
-with open(RAW_PATH, "r", encoding="utf-8") as f:
-    raw_tweets = list({line.strip() for line in f if line.strip()})
+URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
+AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
+
+driver = GraphDatabase.driver(URI, auth=AUTH)
+
+def _fetch_raw_tweets_without_cleaned(skip: int, limit: int):
+    cypher = """
+    MATCH (r:RawTweet)
+    WHERE NOT (r)-[:HAS_CLEANED]->(:CleanedTweet)
+      AND r.text IS NOT NULL
+      AND trim(r.text) <> ''
+    RETURN elementId(r) AS rid, r.text AS text
+    SKIP $skip LIMIT $limit
+    """
+    records, _, _ = driver.execute_query(cypher, {"skip": skip, "limit": limit})
+    return [{"rid": r["rid"], "text": r["text"]} for r in records]
+
+def write_cleaned_tweets(rows):
+    cypher = """
+    UNWIND $rows AS row
+    MATCH (r:RawTweet) WHERE elementId(r) = row.rid
+    MERGE (c:CleanedTweet { cleaned_tweet: row.clean })
+    SET c.tokens     = row.tokens,
+        c.sentiment  = row.label,
+        c.score      = row.score
+    MERGE (r)-[:HAS_CLEANED]->(c)
+    """
+    driver.execute_query(cypher, {"rows": rows})
+
+# (Optional) quick visibility into remaining work
+count_q = """
+MATCH (r:RawTweet)
+WHERE NOT (r)-[:HAS_CLEANED]->(:CleanedTweet)
+  AND r.text IS NOT NULL
+  AND trim(r.text) <> ''
+RETURN count(*) AS n
+"""
+records, _, _ = driver.execute_query(count_q)
+print("Unprocessed candidates:", records[0]["n"])
 
 output_lines = []
 cleaned_tweet_lines = []
 
-for raw in raw_tweets:
-    cleaned_tokens = clean_tweet(raw)
-    cleaned_text = format_cleaned_text(cleaned_tokens)
-    label, score = analyze_sentiment(cleaned_tokens)
+total_processed = 0
+page = 0
 
-    line = (
-        f"RAW: {raw}\n"
-        f"CLEANED: {cleaned_text}\n"
-        f"SENTIMENT: {label} (Score: {score})\n"
-        + "-" * 50
-    )
-    print(line)
-    output_lines.append(line)
-    cleaned_tweet_lines.append(cleaned_text)
+while True:
+    batch = _fetch_raw_tweets_without_cleaned(skip=page * 500, limit=500)
+    if not batch:
+        break
 
-with open(CLEAN_PATH, "w", encoding="utf-8") as f:
-    for line in cleaned_tweet_lines:
-        f.write(line + "\n")
+    prepared = []
+    for row in batch:
+        raw = row["text"]
+        cleaned_tokens = clean_tweet(raw)
+        cleaned_text = format_cleaned_text(cleaned_tokens)
+        label, score = analyze_sentiment(cleaned_tokens)
 
-with open(OUT_PATH, "w", encoding="utf-8") as f:
-    for line in output_lines:
-        f.write(line + "\n")
+        line = (
+            f"RAW: {raw}\n"
+            f"CLEANED: {cleaned_text}\n"
+            f"SENTIMENT: {label} (Score: {score})\n"
+            + "-" * 50
+        )
+        print(line)
+        output_lines.append(line)
+        cleaned_tweet_lines.append(cleaned_text)
 
-print(f"Analysis complete! Full results saved to '{OUT_PATH}'.")
+        prepared.append({
+            "rid": row["rid"],          # elementId(r) STRING
+            "clean": cleaned_text,
+            "tokens": cleaned_tokens,
+            "label": label,
+            "score": score,
+        })
+
+    for i in range(0, len(prepared), 200):
+        write_cleaned_tweets(prepared[i:i+200])
+
+    total_processed += len(prepared)
+    page += 1
+    print(f"Processed page {page}: {len(prepared)} tweets (total {total_processed})")
+
+driver.close()
+print(f"Analysis complete! Wrote {total_processed} cleaned tweets to Neo4j.")
+# --- end block ---
