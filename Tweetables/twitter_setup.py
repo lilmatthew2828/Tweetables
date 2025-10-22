@@ -1,40 +1,57 @@
 import tweepy
 import os
 from dotenv import load_dotenv
+from cryptography.fernet import Fernet
+from neo4j import GraphDatabase #imports database from neo4j
+
+URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
+AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
 
 #load environment variables from .env file
 load_dotenv()
 
-#retrieve API keys from environment variables
-API_KEY = os.getenv("API_KEY")
-API_SECRET = os.getenv("API_SECRET")
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
-ACCESS_SECRET = os.getenv("ACCESS_SECRET")
-BEARER_TOKEN = os.getenv("BEARER_TOKEN")  # Needed for API v2
+def get_twitter_client(username):
+    master_key = os.getenv("MASTER_KEY")
+    results = None
 
-# Ensure variables are loaded
-if not all([API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_SECRET, BEARER_TOKEN]):
-    raise ValueError("Missing API credentials. Check your .env file.")
+    def retrieve_credtials(driver, username):
+        query = """ 
+            Match (u:USER {username: $username})
+            RETURN u.enc_api_key AS enc_api_key,
+                   u.enc_api_secret AS enc_api_secret,
+                   u.enc_access_token AS enc_access_token,
+                   u.enc_access_secret AS enc_access_secret,
+                   u.enc_bearer_token AS enc_bearer_token
+        """
+        records, _, _ = driver.execute_query(query, username = username)
+        return records
 
-#print(f"API_KEY: {API_KEY}")
-#print(f"API_SECRET: {API_SECRET}")
-#print(f"ACCESS_TOKEN: {ACCESS_TOKEN}")
-#print(f"ACCESS_SECRET: {ACCESS_SECRET}")
-#print(f"BEARER_TOKEN: {BEARER_TOKEN}")
+    with GraphDatabase.driver(URI, auth= AUTH) as driver:
+        driver.verify_connectivity()
+        results = retrieve_credtials(driver, username)
+        driver.close()
 
-#authenticate to twitter
-auth = tweepy.OAuthHandler(API_KEY, API_SECRET)
-auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
+    enc_api_key = results[0][0]
+    enc_api_secret = results[0][1]
+    enc_acces_token = results[0][2]
+    enc_access_secret = results[0][3]
+    enc_bearer_token = results[0][4]
 
-# create API object
-api = tweepy.API(auth, wait_on_rate_limit = True)
+    f = Fernet(master_key)
 
-#authenticate using API v2 (for fetching tweets)
-client = tweepy.Client(bearer_token=BEARER_TOKEN)
+    api_key = f.decrypt(enc_api_key).decode()
+    api_secret = f.decrypt(enc_api_secret).decode()
+    acces_token = f.decrypt(enc_acces_token).decode()
+    access_secret = f.decrypt(enc_access_secret).decode()
+    bearer_token = f.decrypt(enc_bearer_token).decode()
 
-# test authentication
-try:
-    user = api.verify_credentials()
-    print(f"Authentication successful! Logged in as: {user.name}")
-except Exception as e:
-    print(f"Authentication failed: {e}")
+    auth = tweepy.OAuthHandler(api_key, api_secret)
+    auth.set_access_token(acces_token, access_secret)
+
+    api = tweepy.API(auth, wait_on_rate_limit=0)
+
+    client = tweepy.Client(bearer_token=bearer_token)
+
+    return client
+
+

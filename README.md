@@ -60,7 +60,7 @@ Exit out of application once done searching for topics
 - Aris Hill
 - Derrick Hollie
 - Daniel Ufua
-- Masoma Ngonde Ekoi
+- Ngonde Ekoi
 - Tadarrio Marshall
 - Matthew Kilaptrick 
 

@@ -285,7 +285,6 @@
 #     main()
 
 # fetch_tweets.py  — portable outputs + robust snscrape fallback
-
 import os
 import sys
 import re
@@ -294,17 +293,52 @@ import shlex
 import subprocess
 from datetime import datetime
 from neo4j import GraphDatabase
-
-import tweepy
-from twitter_setup import client  # Tweepy v2 Client
+from twitter_setup import get_twitter_client
 from langdetect import detect, LangDetectException
 
 # -------------------------------------------------------------------
-# Paths: write/read next to this script so macOS/Windows/VS Code match
+# Paths
 # -------------------------------------------------------------------
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTFILE_TXT = os.path.join(SCRIPT_DIR, os.environ.get("OUTFILE_TXT", "raw_tweets.txt"))
-OUTFILE_JSONL = os.path.join(SCRIPT_DIR, os.environ.get("OUTFILE_JSONL", "tweets.jsonl"))
+
+def log(msg: str) -> None:
+    print(msg, flush=True)
+
+log("fetch_tweets.py has started running...")
+
+# -------------------
+# Helpers
+# -------------------
+def remove_emojis(tweet_text: str) -> str:
+    """Remove non-ASCII characters (no emojis)."""
+    return re.sub(r"[^\x00-\x7F]+", "", tweet_text)
+
+def is_english(tweet_text: str) -> bool:
+    """Return True if detected language is English."""
+    try:
+        return detect(tweet_text) == "en"
+    except LangDetectException:
+        return False
+
+
+# ------------------------------
+# Neo4j setup
+# ------------------------------
+import os
+import sys
+import re
+import json
+import shlex
+import subprocess
+from datetime import datetime
+from neo4j import GraphDatabase
+from twitter_setup import get_twitter_client
+from langdetect import detect, LangDetectException
+
+# -------------------------------------------------------------------
+# Paths
+# -------------------------------------------------------------------
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def log(msg: str) -> None:
     print(msg, flush=True)
@@ -325,25 +359,19 @@ def is_english(tweet_text: str) -> bool:
     except LangDetectException:
         return False
 
-from neo4j import GraphDatabase
 
-# Neo4j database credentials
+# ------------------------------
+# Neo4j setup
+# ------------------------------
 URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
 AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
 
 def store_raw_tweets(records, keyword, username=None):
-    """
-    Store fetched tweets into Neo4j as :Tweet nodes.
-    
-    Each tweet will be stored with text, ID, keyword, language, and timestamp.
-    Optionally connects the tweet to a :USER node via [:FETCHED].
-    """
-
+    """Store fetched tweets into Neo4j"""
     if not records:
-        print("⚠️ No tweet records to insert.")
+        print("No tweet records to insert.")
         return
 
-    # Connect to Neo4j
     with GraphDatabase.driver(URI, auth=AUTH) as driver:
         driver.verify_connectivity()
 
@@ -352,12 +380,17 @@ def store_raw_tweets(records, keyword, username=None):
                 MERGE (t:Tweet {id: $id})
                 ON CREATE SET
                     t.text = $text,
-                    t.keyword = $keyword,
                     t.language = $language,
                     t.created_at = datetime()
-                WITH t
-                OPTIONAL MATCH (u:USER {username: $username})
-                MERGE (u)-[:FETCHED]->(t)
+                WITH t, $keyword AS kw
+                MERGE (k:Keyword {name: kw})
+                MERGE (t)-[:MENTIONS]->(k)
+                WITH k, $username AS uname
+                FOREACH (
+                    i IN CASE WHEN uname IS NOT NULL THEN [1] ELSE [] END |
+                    MERGE (u:USER {username: uname})
+                    MERGE (u)-[:SEARCHED]->(k)
+                )
             """
             tx.run(
                 query,
@@ -372,39 +405,32 @@ def store_raw_tweets(records, keyword, username=None):
             for tweet in records:
                 session.execute_write(insert_tweet, tweet, keyword, username)
 
-        driver.close()
-        print(f"✅ Successfully inserted {len(records)} tweets into Neo4j.")
+        print(f"Inserted {len(records)} tweets into Neo4j successfully.")
 
 
 # ------------------------------
-# Fallback via snscrape (no API)
+# Fallback via snscrape
 # ------------------------------
-def run_snscrape(query: str, limit: int = 100) -> bool:
-    """
-    Requires: pip install snscrape
-    Uses the same Python interpreter to avoid PATH issues on macOS.
-    Produces OUTFILE_JSONL + OUTFILE_TXT.
-    """
+def run_snscrape(query: str, limit: int = 100):
+    """Use snscrape to fetch tweets without Twitter API"""
     cmd = [
-        sys.executable, "-m", "snscrape",
-        "--jsonl", "--max-results", str(int(limit)),
-        "twitter-search", query,
+        sys.executable, "-m", "snscrape.modules.twitter",
+        "--max-results", str(limit),
+        f"twitter-search '{query}'"
     ]
-    log("Running snscrape: " + " ".join(shlex.quote(c) for c in cmd))
+    log("Running snscrape: " + " ".join(cmd))
+
     try:
-        proc = subprocess.run(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=SCRIPT_DIR
-        )
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     except FileNotFoundError:
-        log("snscrape not available. Install with: pip install snscrape")
-        return False
+        log("snscrape not available. Install it using: pip install snscrape")
+        return []
 
     if proc.returncode != 0:
         log("snscrape failed:\n" + (proc.stderr or ""))
-        return False
+        return []
 
-    jsonl_records = []
-    txt_lines = []
+    tweets = []
     for line in proc.stdout.splitlines():
         try:
             obj = json.loads(line)
@@ -414,37 +440,26 @@ def run_snscrape(query: str, limit: int = 100) -> bool:
         text = remove_emojis(text).replace("\n", " ")
         if not text or not is_english(text):
             continue
-        tweet_id = obj.get("id")
-        jsonl_records.append({"id": tweet_id, "text": text})
-        txt_lines.append(text)
+        tweets.append({"id": obj.get("id"), "text": text})
+        if len(tweets) >= limit:
+            break
 
-    if not jsonl_records:
-        log("snscrape returned no usable tweets.")
-        return False
+    return tweets
 
-    write_jsonl(jsonl_records)
-    write_txt(txt_lines)
-    return True
 
 # ------------------------------
-# Twitter API (Tweepy v2 client)
+# Twitter API Fetch
 # ------------------------------
-def fetch_tweets_twitter(keyword: str, want: int = 25):
-    """
-    Fetch recent tweets via Twitter API v2.
-    - Deduplicate, clean, filter English
-    Returns (txt_lines, jsonl_records)
-    """
-    # Twitter v2 recent search: max_results 10..100
-    max_results = min(max(want, 10), 100)
+def fetch_tweets_twitter(keyword: str, username: str, want: int = 10):
+    """Fetch recent tweets via Twitter API v2"""
+    client = get_twitter_client(username)
+    response = client.search_recent_tweets(query=keyword, max_results=min(want, 100))
 
-    response = client.search_recent_tweets(query=keyword, max_results=max_results)
     if not response or not response.data:
-        return [], []
+        return []
 
     seen = set()
-    txt_lines = []
-    jsonl_records = []
+    tweets = []
 
     for tweet in response.data:
         text = (getattr(tweet, "text", "") or "").strip()
@@ -452,30 +467,25 @@ def fetch_tweets_twitter(keyword: str, want: int = 25):
         if not text or not is_english(text) or text in seen:
             continue
         seen.add(text)
-        txt_lines.append(text)
-        jsonl_records.append({"id": getattr(tweet, "id", None), "text": text})
-        if len(txt_lines) >= want:
+        tweets.append({"id": getattr(tweet, "id", None), "text": text})
+        if len(tweets) >= want:
             break
 
-    return txt_lines, jsonl_records
+    return tweets
+
 
 # ------------------------------
 # Orchestrator
 # ------------------------------
 def main():
-    # CLI:
-    #   python fetch_tweets.py "your keywords" --count 25
-    # Fallback:
-    #   python fetch_tweets.py "your keywords" --scrape
-    # Or env:
-    #   USE_SNSCRAPE=1 SCRAPE_LIMIT=200 SCRAPE_QUERY="from:nytimes lang:en"
-    if len(sys.argv) < 2:
-        log('No keyword provided. Example: python fetch_tweets.py "python lang:en"')
+    if len(sys.argv) < 3:
+        log("Usage: python fetch_tweets.py \"keyword\" \"username\" [--count N] [--scrape]")
         sys.exit(0)
 
     keyword = sys.argv[1]
-    count = 25
-    use_scrape_flag = "--scrape" in sys.argv
+    username = sys.argv[2]
+    count = 10
+    use_scrape = "--scrape" in sys.argv
 
     if "--count" in sys.argv:
         try:
@@ -483,51 +493,34 @@ def main():
         except Exception:
             pass
 
-    log("Fetching tweets for sentiment analysis...")
-    log("2 we're here")
+    log(f"Fetching {count} tweets for '{keyword}'...")
+
     try:
-        log("Using Twitter API v2...")
-        txt_lines, jsonl_records = fetch_tweets_twitter(keyword, want=count)
-        if txt_lines:
-            write_txt(txt_lines)
-            write_jsonl(jsonl_records)
-            _digits = len(str(len(txt_lines)))
-            log("\nTweets Fetched:\n")
-            for i, line in enumerate(txt_lines, 1):
-                log(f"{str(i).rjust(_digits)}. {line}")
-            log(f"\nSaved {len(txt_lines)} tweets to '{OUTFILE_TXT}' and '{OUTFILE_JSONL}'.")
+        tweets = fetch_tweets_twitter(keyword, username, want=count)
+        if tweets:
+            store_raw_tweets(tweets, keyword, username)
+            log(f"{len(tweets)} tweets fetched from API and stored in Neo4j.")
             return
         else:
-            log("No suitable English tweets found via API.")
-
+            log("No tweets from API or rate limit reached.")
     except Exception as e:
-        emsg = str(e)
-        if "429" in emsg or "Too Many Requests" in emsg or "cap" in emsg.lower():
-            log("Error fetching tweets: 429 Too Many Requests / monthly cap.")
+        if "429" in str(e) or "Too Many Requests" in str(e):
+            log("Twitter API rate limit hit. Falling back to snscrape.")
+            use_scrape = True
         else:
             log(f"Error fetching tweets: {e}")
 
-    # API path yielded nothing or errored -> decide on fallback
-    use_env_scrape = os.getenv("USE_SNSCRAPE") == "1"
-    if use_scrape_flag or use_env_scrape:
-        query = os.getenv("SCRAPE_QUERY", keyword)
-        limit = int(os.getenv("SCRAPE_LIMIT", str(max(count, 100))))
-        log("Falling back to snscrape (no Twitter API)...")
-        ok = run_snscrape(query, limit=limit)
-        if ok:
-            log(f"Fetched via snscrape fallback. See '{OUTFILE_TXT}' and '{OUTFILE_JSONL}'.")
-            return
+    if use_scrape:
+        log("Using snscrape fallback...")
+        tweets = run_snscrape(keyword, limit=count)
+        if tweets:
+            store_raw_tweets(tweets, keyword, username)
+            log(f"{len(tweets)} tweets fetched via snscrape and stored in Neo4j.")
         else:
-            log("snscrape fallback failed.")
+            log("snscrape failed or returned no tweets.")
     else:
-        log("Skipping snscrape fallback (enable with --scrape or USE_SNSCRAPE=1).")
+        log("No data sources available. Exiting.")
 
-    # Keep pipeline alive if previous data exists
-    if os.path.exists(OUTFILE_TXT) or os.path.exists(OUTFILE_JSONL):
-        log("No fresh data, but existing tweet files found—downstream analysis can still run.")
-        return
-
-    sys.exit(1)
 
 if __name__ == "__main__":
     main()
