@@ -613,7 +613,7 @@ driver = GraphDatabase.driver(URI, auth=AUTH)
 
 def _fetch_raw_tweets_without_cleaned(skip: int, limit: int):
     cypher = """
-    MATCH (r:RawTweet)
+    MATCH (r:Tweet)
     WHERE NOT (r)-[:HAS_CLEANED]->(:CleanedTweet)
       AND r.text IS NOT NULL
       AND trim(r.text) <> ''
@@ -626,7 +626,7 @@ def _fetch_raw_tweets_without_cleaned(skip: int, limit: int):
 def write_cleaned_tweets(rows):
     cypher = """
     UNWIND $rows AS row
-    MATCH (r:RawTweet) WHERE elementId(r) = row.rid
+    MATCH (r:Tweet) WHERE elementId(r) = row.rid
     MERGE (c:CleanedTweet { cleaned_tweet: row.clean })
     SET c.tokens     = row.tokens,
         c.sentiment  = row.label,
@@ -637,7 +637,7 @@ def write_cleaned_tweets(rows):
 
 # (Optional) quick visibility into remaining work
 count_q = """
-MATCH (r:RawTweet)
+MATCH (r:Tweet)
 WHERE NOT (r)-[:HAS_CLEANED]->(:CleanedTweet)
   AND r.text IS NOT NULL
   AND trim(r.text) <> ''
