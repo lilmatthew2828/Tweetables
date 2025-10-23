@@ -1,6 +1,6 @@
-# Tweetables
+# Xpendables
 Sentimental Analysis on X
-# Tweetables
+# Xpendables
 
 ## **Description**
 This is an application that uses Twitter data in order to build a sentiment analysis system.

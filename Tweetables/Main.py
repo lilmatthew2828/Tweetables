@@ -239,7 +239,7 @@ class LoginScreen:
 class SentimentAnalysisApp:
     def __init__(self, master):
         self.master = master
-        self.master.title("Tweetables: Sentiment Analysis")
+        self.master.title("Xpendables: Sentiment Analysis")
         # match updated GUI sizing/look
         self.master.geometry("960x780")
         self.master.configure(bg="#ADD8E6")
@@ -247,7 +247,7 @@ class SentimentAnalysisApp:
         self.frame = tk.Frame(master, bg="#ADD8E6", padx=20, pady=20)
         self.frame.pack(expand=True, fill=tk.BOTH)
 
-        tk.Label(self.frame, text="Tweetables: Movie Sentiment Analysis Tool", font=("Helvetica", 16, "bold"), bg="#ADD8E6").pack(pady=10)
+        tk.Label(self.frame, text="Xpendables: Movie Sentiment Analysis Tool", font=("Helvetica", 16, "bold"), bg="#ADD8E6").pack(pady=10)
 
         # --- keyword entry box ---
         keyword_frame = tk.Frame(self.frame, bg="#ADD8E6")
