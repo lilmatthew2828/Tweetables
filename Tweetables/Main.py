@@ -32,8 +32,6 @@ CURRENT_USER = None
 def _subprocess_env():
     # Add NLTK_DATA so both child scripts find/download data in-project
     env = {**os.environ, "NLTK_DATA": NLTK_DIR}
-    # Optional: force scraping fallback so you always have raw_tweets.txt when API 429 happens
-    # env["USE_SNSCRAPE"] = "1"
     return env
 
 
@@ -446,7 +444,7 @@ class SentimentAnalysisApp:
                 stderr=subprocess.PIPE,
                 text=True,
                 cwd=SCRIPT_DIR,  # ensure consistent read/write folder
-                env=_subprocess_env(),  # pass NLTK_DATA / USE_SNSCRAPE, etc.
+                env=_subprocess_env(),  # pass NLTK_DATA, etc.
             )
 
             for line in fetch_process.stdout:
@@ -463,7 +461,7 @@ class SentimentAnalysisApp:
             if fetch_code != 0 and not os.path.exists(raw_path):
                 self.master.after(0, self.append_output,
                                    "No tweets to analyze (fetch failed and no cache). "
-                                   "Enable fallback scraping with --scrape or set USE_SNSCRAPE=1." )
+                                    )
                 return
 
             # divider between phases
