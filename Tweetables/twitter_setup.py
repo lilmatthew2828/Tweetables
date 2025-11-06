@@ -9,7 +9,7 @@ AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
 
 #load environment variables from .env file
 load_dotenv()
-
+#Daniel Ufua
 def get_twitter_client(username):
     master_key = os.getenv("MASTER_KEY")
     results = None
