@@ -85,6 +85,8 @@ class LoginScreen:
                 RETURN u.hashed_password AS user_password
             """
             records, summary, key = driver.execute_query(query, username=username)
+            if records == []:
+                return False
             return bcrypt.checkpw(passwordBytes, records[0]["user_password"])
 
         with GraphDatabase.driver(URI, auth=AUTH) as driver:
