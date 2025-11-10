@@ -44,6 +44,39 @@ This installer will automatically:
 - Install dependences from requirements.txt
 - Launch the Application
 
+### 4a. Troubleshooting macOS Security Warning (Important)
+macOS may display the messag:
+
+"install_mac.command cannot be opened because Apple cannoy verify it is free of malware"
+
+This is completely normal for all **.command** files not downloaded from the App Store.
+
+To allow the installer to run:
+
+1. Open **System Settings**
+2. Go to **Privacy & Security**
+3. Scroll down until you see a message saying the file was blocked
+4. Click **Allow Anyway**
+5. Double-click the file again, and choose **Open**
+
+If you recieve a permissions error, run these commands in *Terminal*:
+```bash
+
+chmod +x install_mac.command
+chmod +x run_app.command
+```
+
+This gives your Mac permission to execute the scripts.
+
+If the installer continues to be blocked due to Apple's quarantine flag, you can remove the quarantine attribute by running these commands in *Terminal*
+
+Only run these commands if macOS continues blocking the files after clicking "Allow Anyway" and running **chmod +x**
+
+```bash
+xattr -d com.apple.quarantine install_mac.command
+xattr -d com.apple.quarantine run_app.command
+```
+
 ### 5. Running the App Again Later On
 To run Tweetables agin:
 
