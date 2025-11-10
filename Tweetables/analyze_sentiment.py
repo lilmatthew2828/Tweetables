@@ -1,5 +1,5 @@
 import os, re, shutil
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 # Paths & NLTK data location (project-local so Windows/macOS behave the same)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -130,9 +130,9 @@ sentiment_dict = {
     "balanced": 3, "great-dialogue": 3, "unique": 3, "worthy": 3, "likeable": 3,
     "fun-ride": 3, "touching": 3, "laugh-out-loud": 3, "witty": 3, "feel-good": 3,
 
-     # 13 additional Positive words 
-    "Radiant": 4, "Triumphant": 5, "Delightful": 4, "Impactful": 4, "Enchanting": 4, "Invigorating": 4, 
-    "Transformative": 5, "Heartening": 4, "Exhilarating": 5, "Exuberant": 4, "Vibrant": 4, "Jaw-dropping": 5, 
+    # 13 additional Positive words
+    "Radiant": 4, "Triumphant": 5, "Delightful": 4, "Impactful": 4, "Enchanting": 4, "Invigorating": 4,
+    "Transformative": 5, "Heartening": 4, "Exhilarating": 5, "Exuberant": 4, "Vibrant": 4, "Jaw-dropping": 5,
 
     # Positive AAVE/Ebonics Words
     "ate": 4, "bussin": 4, "chewed": 4, "fly": 3, "fye": 4, "gas": 4, "goat": 5, "its giving": 3,
@@ -144,13 +144,12 @@ sentiment_dict = {
     "meh": 0, "acceptable": 1, "normal": 1, "basic": 1, "regular": 1,
     "expected": 1, "predictable": -1, "forgettable": -1, "formulaic": -1, "plain-jane": 0, "scary": -1, "surprised": 1,
 
-   # 8 Expanded Neutral words
-   "unremarkable": 0, "mundane": 0, "routine": 0, "typical": 0, "uncomplicated": 1, "conventional": 1, "tolerable": 1, "generic": 0,
+    # 8 Expanded Neutral words
+    "unremarkable": 0, "mundane": 0, "routine": 0, "typical": 0, "uncomplicated": 1, "conventional": 1, "tolerable": 1, "generic": 0,
 
-
-  # Neural AAVE/Ebonics Words
-  "bet": 0, "chile": 0, "fasho": 0, "girl": 0, "gurl": 0, "gworl": 0, "highkey": 1, "ight": 0, "ite": 0, "lowkey": 0,
-  "merch": 0, "no cap": 2, "no shade": 0, "word": 0,
+    # Neural AAVE/Ebonics Words
+    "bet": 0, "chile": 0, "fasho": 0, "girl": 0, "gurl": 0, "gworl": 0, "highkey": 1, "ight": 0, "ite": 0, "lowkey": 0,
+    "merch": 0, "no cap": 2, "no shade": 0, "word": 0,
 
     "mediocre": -1, "slow": -2, "uninspired": -2, "cliché": -2, "unrealistic": -2, "dry": -2, "flat": -2,
     "underdeveloped": -2, "confusing": -2, "lackluster": -2, "awkward": -2, "weak": -2, "repetitive": -2,
@@ -171,7 +170,7 @@ sentiment_dict = {
     "unbelievable": -3, "scary": -3, "disturbing": -4,
 
     # 13 Expanded Negative Words
-    "grim": -3, "weak-plot": -3, "incoherent": -3, "meh": 0, "bleh": -1, "abysmal": -5, "dreadful": -5, "horrendous": -5, "pathetic": -4, "pitiful": -4, "chaotic": -3, "bland": -2, 
+    "grim": -3, "weak-plot": -3, "incoherent": -3, "meh": 0, "bleh": -1, "abysmal": -5, "dreadful": -5, "horrendous": -5, "pathetic": -4, "pitiful": -4, "chaotic": -3, "bland": -2,
     "terrible-acting": -4,
 
     # Negative AAVE/Ebonics Words
@@ -238,7 +237,7 @@ def clean_tweet(tweet: str) -> List[str]:
 
         candidate = lemma
 
-        # 🔑 If lemmatization would break a known sentiment word,
+        # If lemmatization would break a known sentiment word,
         # keep the original token instead of the lemma.
         if (lemma not in sentiment_dict) and (w in sentiment_dict):
             candidate = w
@@ -263,14 +262,25 @@ def clean_tweet(tweet: str) -> List[str]:
 def format_cleaned_text(tokens: List[str]) -> str:
     return " ".join(tokens)
 
-def analyze_sentiment(tokens: List[str]) -> Tuple[str, int]:
-    score = sum(sentiment_dict.get(tok, 0) for tok in tokens)
-    if score > 0:  return "Positive", score
-    if score < 0:  return "Negative", score
-    return "Neutral", score
+# MODIFIED: Returns non-scored words as a dictionary (word: frequency)
+def analyze_sentiment(tokens: List[str]) -> Tuple[str, int, Dict[str, int]]:
+    score = 0
+    # Use a dictionary to store word: count
+    non_scored_word_freq = {} 
+
+    for tok in tokens:
+        s_val = sentiment_dict.get(tok)
+        if s_val is not None:
+            score += s_val
+        else:
+            # Increment the count for the non-scored word
+            non_scored_word_freq[tok] = non_scored_word_freq.get(tok, 0) + 1 
+            
+    if score > 0:  return "Positive", score, non_scored_word_freq
+    if score < 0:  return "Negative", score, non_scored_word_freq
+    return "Neutral", score, non_scored_word_freq
 
 # ---------- Load, process, save ----------
-# (Replaced: file I/O → Neo4j integration)
 from neo4j import GraphDatabase
 
 URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
@@ -290,14 +300,16 @@ def _fetch_raw_tweets_without_cleaned(skip: int, limit: int):
     records, _, _ = driver.execute_query(cypher, {"skip": skip, "limit": limit})
     return [{"rid": r["rid"], "text": r["text"]} for r in records]
 
+# MODIFIED: Added nonScoredWordFreq to the Cypher query
 def write_cleaned_tweets(rows):
     cypher = """
     UNWIND $rows AS row
     MATCH (r:Tweet) WHERE elementId(r) = row.rid
     MERGE (c:CleanedTweet { cleaned_tweet: row.clean })
-    SET c.tokens     = row.tokens,
-        c.sentiment  = row.label,
-        c.score      = row.score
+    SET c.tokens            = row.tokens,
+        c.sentiment         = row.label,
+        c.score             = row.score,
+        c.nonScoredWordFreq = row.non_scored_word_freq  
     MERGE (r)-[:HAS_CLEANED]->(c)
     """
     driver.execute_query(cypher, {"rows": rows})
@@ -329,12 +341,18 @@ while True:
         raw = row["text"]
         cleaned_tokens = clean_tweet(raw)
         cleaned_text = format_cleaned_text(cleaned_tokens)
-        label, score = analyze_sentiment(cleaned_tokens)
+        
+        # Unpack the new return value (dictionary of frequencies)
+        label, score, non_scored_word_freq = analyze_sentiment(cleaned_tokens) 
+
+        # Format the frequency dictionary for printing 
+        freq_str = ', '.join(f"{k}: {v}" for k, v in non_scored_word_freq.items())
 
         line = (
             f"RAW: {raw}\n"
             f"CLEANED: {cleaned_text}\n"
             f"SENTIMENT: {label} (Score: {score})\n"
+            f"NON-SCORED FREQUENCY: {freq_str}\n" 
             + "-" * 50
         )
         print(line)
@@ -342,11 +360,13 @@ while True:
         cleaned_tweet_lines.append(cleaned_text)
 
         prepared.append({
-            "rid": row["rid"],          # elementId(r) STRING
+            "rid": row["rid"],
             "clean": cleaned_text,
             "tokens": cleaned_tokens,
             "label": label,
             "score": score,
+            # Pass the dictionary of frequencies
+            "non_scored_word_freq": non_scored_word_freq, 
         })
 
     for i in range(0, len(prepared), 200):
@@ -358,5 +378,3 @@ while True:
 
 driver.close()
 print(f"Analysis complete! Wrote {total_processed} cleaned tweets to Neo4j. Full results saved to '{OUT_PATH}'.")
-# --- end block ---
-
