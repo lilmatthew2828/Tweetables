@@ -262,46 +262,66 @@ def clean_tweet(tweet: str) -> List[str]:
 def format_cleaned_text(tokens: List[str]) -> str:
     return " ".join(tokens)
 
-# MODIFIED: Returns non-scored words as a dictionary (word: frequency)
-def analyze_sentiment(tokens: List[str]) -> Tuple[str, int, Dict[str, int]]:
-    score = 0
-    # Use a dictionary to store word: count
-    non_scored_word_freq = {} 
 
-    for tok in tokens:
-        s_val = sentiment_dict.get(tok)
-        if s_val is not None:
-            score += s_val
-        else:
-            # Increment the count for the non-scored word
-            non_scored_word_freq[tok] = non_scored_word_freq.get(tok, 0) + 1 
-
-    # TJ - Put for loop here going thru "non_scored_word_freq" and execute queries as described in meeting notes
-    # Pseudocode for the what to do with non-scored words:
-    """
-    for word, frequency in non_scored_word_freq.items():
-        Search for UNSCORED_WORD node with the word
-        If found:
-            Obtain the frequency property to get the current frequency in the database
-            Increment its frequency by using the set cypher operation and adding the new frequency to the existing one
-        If not found:
-            Create a new UNSCORED_WORD node with the word and set its frequency property to the frequency from this analysis
-            Create a new [:IS_A] relationship from the new UNSCORED_WORD node to the UNSCORED_WORDS anchor node
-    
-    
-    """
-            
-    if score > 0:  return "Positive", score, non_scored_word_freq
-    if score < 0:  return "Negative", score, non_scored_word_freq
-    return "Neutral", score, non_scored_word_freq
-
-# ---------- Load, process, save ----------
 from neo4j import GraphDatabase
 
 URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
 AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
 
 driver = GraphDatabase.driver(URI, auth=AUTH)
+
+# MODIFIED: Returns non-scored words as a dictionary (word: frequency)
+def analyze_sentiment(tokens: List[str]) -> Tuple[str, int, Dict[str, int]]:
+    score = 0
+    non_scored_word_freq = {}
+
+    for tok in tokens:
+        s_val = sentiment_dict.get(tok)
+        if s_val is not None:
+            score += s_val
+        else:
+            non_scored_word_freq[tok] = non_scored_word_freq.get(tok, 0) + 1
+
+    if non_scored_word_freq:
+        update_unscored_words(non_scored_word_freq)
+
+    if score > 0:
+        return "Positive", score, non_scored_word_freq
+    if score < 0:
+        return "Negative", score, non_scored_word_freq
+    return "Neutral", score, non_scored_word_freq
+
+
+
+def update_unscored_words(non_scored_word_freq: Dict[str, int]):
+    """Create or update UNSCORED_WORD nodes in Neo4j."""
+    if not non_scored_word_freq:
+        return
+
+    cypher = """
+    // 1. Ensure a single anchor node exists for grouping 
+    MERGE (anchor:UNSCORED_WORDS)
+    WITH anchor
+
+    // 2. Process the list of word/frequency pairs
+    UNWIND $wordData AS wordEntry
+
+    // 3. Try to find or create the UNSCORED_WORD node
+    MERGE (uw:UNSCORED_WORD {word: wordEntry.word})
+
+    // 4. Set or increment frequency
+    ON CREATE SET uw.frequency = wordEntry.freq
+    ON MATCH SET uw.frequency = uw.frequency + wordEntry.freq
+
+    // 5. Link each word to the anchor node
+    MERGE (uw)-[:IS_A]->(anchor)
+    """
+
+    data = [{"word": w, "freq": int(f)} for w, f in non_scored_word_freq.items()]
+    driver.execute_query(cypher, {"wordData": data})
+
+
+
 
 def _fetch_raw_tweets_without_cleaned(skip: int, limit: int):
     cypher = """
