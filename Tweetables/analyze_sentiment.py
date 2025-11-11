@@ -275,6 +275,8 @@ def analyze_sentiment(tokens: List[str]) -> Tuple[str, int, Dict[str, int]]:
         else:
             # Increment the count for the non-scored word
             non_scored_word_freq[tok] = non_scored_word_freq.get(tok, 0) + 1 
+
+    # TJ - Put for loop here going thru "non_scored_word_freq" and execute queries as described in meeting notes
             
     if score > 0:  return "Positive", score, non_scored_word_freq
     if score < 0:  return "Negative", score, non_scored_word_freq
