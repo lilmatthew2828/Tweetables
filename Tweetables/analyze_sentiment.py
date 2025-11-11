@@ -277,6 +277,19 @@ def analyze_sentiment(tokens: List[str]) -> Tuple[str, int, Dict[str, int]]:
             non_scored_word_freq[tok] = non_scored_word_freq.get(tok, 0) + 1 
 
     # TJ - Put for loop here going thru "non_scored_word_freq" and execute queries as described in meeting notes
+    # Pseudocode for the what to do with non-scored words:
+    """
+    for word, frequency in non_scored_word_freq.items():
+        Search for UNSCORED_WORD node with the word
+        If found:
+            Obtain the frequency property to get the current frequency in the database
+            Increment its frequency by using the set cypher operation and adding the new frequency to the existing one
+        If not found:
+            Create a new UNSCORED_WORD node with the word and set its frequency property to the frequency from this analysis
+            Create a new [:IS_A] relationship from the new UNSCORED_WORD node to the UNSCORED_WORDS anchor node
+    
+    
+    """
             
     if score > 0:  return "Positive", score, non_scored_word_freq
     if score < 0:  return "Negative", score, non_scored_word_freq
