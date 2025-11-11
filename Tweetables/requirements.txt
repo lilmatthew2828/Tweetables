@@ -1,6 +1,8 @@
 # Requirements.txt file for Script Installation for Xpendables created by Day Ekoi 
 
-nltk
-tweepy
-python-dotenv
-cryptography
+nltk      # NLTK Library for sentiment anaysis and text processing
+tweepy    # Interacting with X API  
+python-dotenv    # Loads environment variables from .env file (API keys, Neo4j)
+cryptography     # For encruption and ensuring secure data handling
+bcrypt           # For secure password hashing | Added after testing of Windows Installation
+neo4j>=5,<6      # Used to connect to the Neo4j database | Added after testing of Windows Installation
