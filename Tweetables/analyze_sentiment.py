@@ -339,6 +339,7 @@ while True:
         break
 
     prepared = []
+
     for row in batch:
         raw = row["text"]
         cleaned_tokens = clean_tweet(raw)
@@ -347,6 +348,12 @@ while True:
         # Unpack the new return value (dictionary of frequencies)
         label, score, non_scored_word_freq = analyze_sentiment(cleaned_tokens) 
 
+        # --- FIX APPLIED HERE ---
+        # Convert the dictionary (Map) into a list of "key:value" strings
+        # This is a primitive array type that Neo4j can store.
+        non_scored_word_list = [f"{k}:{v}" for k, v in non_scored_word_freq.items()]
+        # --- END FIX ---
+        
         # Format the frequency dictionary for printing 
         freq_str = ', '.join(f"{k}: {v}" for k, v in non_scored_word_freq.items())
 
@@ -367,8 +374,8 @@ while True:
             "tokens": cleaned_tokens,
             "label": label,
             "score": score,
-            # Pass the dictionary of frequencies
-            "non_scored_word_freq": non_scored_word_freq, 
+            # Pass the list of strings instead of the dictionary
+            "non_scored_word_freq": non_scored_word_list, 
         })
 
     for i in range(0, len(prepared), 200):
