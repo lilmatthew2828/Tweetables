@@ -1,9 +1,38 @@
 
 # INSTALLATION INSTRUCTIONS
 
-This document provides the installation steps for running the Tweetables application on both Windows and macOS. These instructions were created for the current project deliverables and do not replace the orginal README.
+This document provides the installation steps for running the Tweetables application on both Windows and macOS. These instructions do not replace the orginal README.
 
-***Please read installation instructions in full***
+***Please read installation instructions in full before proceeding***
+
+## Requirements & Notes
+
+Tweetables requires: 
+- Neo4j database
+- Python 3.10+ is required on both Windows or macOS
+
+- Do **NOT** delete the *venv* folder after installation
+- Internet connection is required the first time for dependecy installation
+
+*before* installation
+
+### 1. Python 3.10+
+Download Python from: https://www.python.org/downloads/
+
+Make sure "Add to PATH" is checked on Windows
+
+### 2. Neo4j Setup
+Tweetables uses Neo4j as its database. Before installing or launching the application:
+1. Install Neo4j Desktop from: https://neo4j.com/download/
+2. Open Neo4j Desktop and create a new database
+3. Click Start to run the database.
+4. In the Tweetables project folder, create a file named *.env* and add:
+```bash
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=your_password
+```
+5. Keep Neo4j running whenever you want to use Tweetables. If Neo4j is not running, the application will not start.
 
 ##  Windows Installation
 
@@ -44,10 +73,10 @@ This installer will automatically:
 - Install dependences from requirements.txt
 - Launch the Application
 
-### 4a. Troubleshooting macOS Security Warning (Important)
+### a. Troubleshooting macOS Security Warning (Important)
 macOS may display the messag:
 
-"install_mac.command cannot be opened because Apple cannoy verify it is free of malware"
+"install_mac.command cannot be opened because Apple cannot verify it is free of malware"
 
 This is completely normal for all **.command** files not downloaded from the App Store.
 
@@ -88,10 +117,6 @@ chmod +x run_app.command
 2. Double click: **run_app.command**
 
 
-### Notes
-- Python 3.10+ is required on btoh Windows or macOS
-- Do **NOT** delete the *venv* folder after installation
-- Internet connection is required the first time for dependecy installation
 
 ## Credits 
 
