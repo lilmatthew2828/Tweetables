@@ -1,18 +1,41 @@
+@echo off
 REM run_app.bat: Tweetables Windows Launcher
-REM Purpose: Installs and launches application on macOS by creating VE, installing all packages, and running automatically
+REM Purpose: Launches application on macOS by creating VE, installing all packages, and running automatically
 REM Creator: Day Ekoi
 
-@echo off
+echo _________________________
+echo Launching Tweetables 
+echo _________________________
 
-REM Step 1: Activate VE created during install
+
+REM Step 1: Verify VE exists
+
+    if not exist "venv\Scripts\activate" (
+        echo Virtual Environement not found.
+        echo Please run install_windows.bat first
+        pause
+        exit /b
+    )
+
+REM Step 2: Activate VE created during install
 
     call venv\Scripts\activate
 
-REM Step 2: Launch Application
+REM Step 3: Verify .env file exits 
+
+    if not exist ".env" (
+        echo No .env file found
+        echo Make sure the .env file exists in the folder before launching.
+        pause
+        exit /b
+    )
+
+REM Step 4: Launch Application
 
     python Main.py
 
-REM Step 3: Keep window oopen so user can view output
+REM Step 5: Keeps window oopen so user can view output
 
+    echo.
     pause
 
