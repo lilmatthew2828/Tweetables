@@ -264,7 +264,7 @@ def format_cleaned_text(tokens: List[str]) -> str:
 
 
 # ---------- Load, process, save ----------
-# (Replaced: file I/O → Neo4j integration) All new code done by Aris Hill
+# (Replaced: file I/O → Neo4j integration) All new code done by Aris Hill and TJ Marshall
 from neo4j import GraphDatabase
 
 URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
