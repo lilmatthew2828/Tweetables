@@ -1,11 +1,37 @@
+@echo off
+
+REM Makes sure it tracks which ever directory the Tweetables folder is in
+cd /d "%~dp0"  
+
 REM Tweetables Windows Installer 
 REM Purpose: Creates virtual environement, installs required Python packes, and lauches the app with a double click
-REM Creator: Day Ekoi Fall 25'
+REM Creator: Day Ekoi 
 
-    @echo off
     echo ____________________________________
-    echo Tweetables Installer (Windows Only)
+    echo Tweetables Installer (Windows)
     echo ____________________________________
+
+
+REM Step 0: Check if venv already exists
+
+    if exist "venv\Scripts\activate" (
+        echo Virtual Environment already exists.
+        echo Skipping reinstallation...
+        call venv\Scripts\activate
+    if not exist ".env" (
+        echo No .env file found.
+        echo Make sure the .env file exists in the folder before launching.
+        pause
+        exit /b
+    )
+
+    echo Launching Tweetables...
+    python Main.py
+    echo.
+    echo Tweetables has finished running.
+    pause
+    exit /b
+)
 
 REM Step 1: Creating virtual environment 'venv'
 REM Keeps installed scripts isolated from system Python
@@ -25,11 +51,20 @@ REM Step 3: Install Project Dependencies
     pip install --upgrade pip
     pip install -r requirements.txt
 
-REM Step 4: Installation Complete Twetables App is able to be launched (Main.py is the entry point)
+REM Step 4: Verification of .env file
+
+    if not exist ".env" (    
+         echo No .env file found
+         echo Make sure the .env file exists in the folder before launching.
+         pause
+         exit /b
+    )
+
+REM Step 5: Installation Complete - Auto launch
 
     echo Installation Complete.
     echo Launching Tweetables...
     python Main.py
 
-REM Step 5: Slight pause/delay so the command window doesnt immediately close and lets user read any output.
+    echo.
     pause

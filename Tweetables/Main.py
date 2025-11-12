@@ -76,6 +76,7 @@ class LoginScreen:
             self.username_entry.delete(0, tk.END)
             self.password_entry.delete(0, tk.END)
 
+    # Brian Csehoski ------------------------------#
     def check_credentials(self, username, password):  # Fixed This as well You hit this because some lines in users.txt have more than one comma, so
         passwordBytes = password.encode('utf-8')
 
@@ -95,6 +96,7 @@ class LoginScreen:
             driver.close()
 
         return value
+    # ----------------------------------------------#
 
     def open_signup(self):  # method for user sign up process. Needs ode tweaking
         signup_window = tk.Toplevel(self.master)
@@ -112,6 +114,8 @@ class LoginScreen:
         tk.Label(frame, text="New Password:", font=("Arial", 12), bg="#ADD8E6").grid(row=1, column=0, sticky="w", pady=5)
         new_password = tk.Entry(frame, font=("Arial", 12), show="*")
         new_password.grid(row=1, column=1, pady=5, padx=10)
+
+        # Brian Csehoski expanded signup ----------------------------------#
 
         tk.Label(frame, text="Re-enter New Password:", font=("Arial", 12), bg="#ADD8E6").grid(row=2, column=0, sticky="w", pady=5)
         new_password_again = tk.Entry(frame, font=("Arial", 12), show="*")
@@ -137,7 +141,9 @@ class LoginScreen:
         new_bearer_token = tk.Entry(frame, font=("Arial", 12), show="*")
         new_bearer_token.grid(row=7, column=1, pady=5, padx=10)
 
-        # =========================================================================================================================================================================================
+        # ---------------------------------------------------#
+
+        # Brian Csehoski =========================================================================================================================================================================================
         def save_credentials():
             username = new_username.get()
             password = new_password.get()
