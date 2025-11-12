@@ -20,7 +20,6 @@ Tweetables requires:
 - You do not need to install Neo4j but keep Neo4j running whenever you want to use Tweetables. If it is not running, the application will not start
 
 
-
 ### 1. Python 3.10+
 Download Python from: https://www.python.org/downloads/
 
@@ -42,11 +41,7 @@ Inside the Tweetables folder, double click: **install_windows.bat**
 - Create a Python Virtual Environment 
 - Install all required packed from *requirements.txt*
 - Launch the application
-
-### 3. Running the App Again Later On
-After installation, you can run the app anytime by double-clicking: **run_app.bat**
-
-**run_app.bat** starts the program without reinstallation
+- Launch again at any time by double clicking
 
 ## macOS Installation
 
@@ -56,7 +51,7 @@ Download or clone the **TWEETABLES** project folder.
 ### 2. Allow the Installer to Run ***(Important!)***
 **Note: This step only needs to be done ***once****
 
-Before double clicking the installer, open *Terminal* and run:
+Before double clicking the installer, open *Terminal* and run this inside the directory the Tweetables folder is in:
 
 ``` bash
 chmod +x install_mac.command
@@ -68,6 +63,7 @@ This installer will automatically:
 - Create a Virtual Environment
 - Install dependences from *requirements.txt*
 - Launch the Application
+- Launch again at any time by double clicking
 
 ### a. Troubleshooting macOS Security Warning (Important)
 macOS may display the message:
@@ -88,31 +84,15 @@ If you recieve a permissions error, run these commands in *Terminal*:
 ```bash
 
 chmod +x install_mac.command
-chmod +x run_app.command
 ```
 
 This gives your Mac permission to execute the scripts.
 
-If the installer continues to be blocked due to Apple's quarantine flag, you can remove the quarantine attribute by running these commands in *Terminal*
-
-**Only run these next commands if needed** if macOS continues blocking the files after clicking "Allow Anyway" and running **chmod +x**
+If the file remains blocked, remove the quarantine attribute (only if needed):
 
 ```bash
 xattr -d com.apple.quarantine install_mac.command
-xattr -d com.apple.quarantine run_app.command
 ```
-
-### 5. Running the App Again Later On
-To run Tweetables agin:
-
-1. Give permission once (if needed) in Terminal:
-
-```bash
-chmod +x run_app.command
-```
-2. Double click: **run_app.command**
-
-
 
 ## Credits 
 
