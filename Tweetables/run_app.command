@@ -11,7 +11,7 @@ echo "______________________"
 # Step 1: Verify VE exists
     if [ ! -d "venv" ]; 
     then
-        echo "Virtrual Environment not found."
+        echo "Virtual Environment not found."
         echo "Please run install_mac.command first"
         read -p "Press Return to exit"
         exit 1
