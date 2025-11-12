@@ -1,5 +1,7 @@
 @echo off
-cd /d "%~dp0"
+
+REM Makes sure it tracks which ever directory the Tweetables folder is in
+cd /d "%~dp0"  
 
 REM Tweetables Windows Installer 
 REM Purpose: Creates virtual environement, installs required Python packes, and lauches the app with a double click
