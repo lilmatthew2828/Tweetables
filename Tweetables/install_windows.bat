@@ -1,8 +1,10 @@
+@echo off
+cd /d "%~dp0"
+
 REM Tweetables Windows Installer 
 REM Purpose: Creates virtual environement, installs required Python packes, and lauches the app with a double click
 REM Creator: Day Ekoi 
 
-    @echo off
     echo ____________________________________
     echo Tweetables Installer (Windows)
     echo ____________________________________
