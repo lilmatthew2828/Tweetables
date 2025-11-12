@@ -270,7 +270,7 @@ def analyze_sentiment(tokens: List[str]) -> Tuple[str, int]:
     return "Neutral", score
 
 # ---------- Load, process, save ----------
-# (Replaced: file I/O → Neo4j integration)
+# (Replaced: file I/O → Neo4j integration) All new code done by Aris Hill
 from neo4j import GraphDatabase
 
 URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
@@ -294,15 +294,30 @@ def write_cleaned_tweets(rows):
     cypher = """
     UNWIND $rows AS row
     MATCH (r:Tweet) WHERE elementId(r) = row.rid
-    MERGE (c:CleanedTweet { cleaned_tweet: row.clean })
-    SET c.tokens     = row.tokens,
-        c.sentiment  = row.label,
-        c.score      = row.score
-    MERGE (r)-[:HAS_CLEANED]->(c)
+    MERGE (r)-[:HAS_CLEANED]->(c:CleanedTweet)
+    SET  c.cleaned_tweet = row.clean,
+     c.tokens       = row.tokens,
+     c.sentiment    = row.label,
+     c.score        = row.score
     """
     driver.execute_query(cypher, {"rows": rows})
 
-# (Optional) quick visibility into remaining work
+def update_keyword_averages_for_rids(rids):
+    if not rids:
+        return
+    cypher = """
+    UNWIND $rids AS rid
+    MATCH (t:Tweet) WHERE elementId(t) = rid
+    MATCH (t)-[:MENTIONS]->(k:Keyword)
+    WITH DISTINCT k
+    MATCH (k)<-[:MENTIONS]-(t2:Tweet)-[:HAS_CLEANED]->(c:CleanedTweet)
+    WITH k, avg(c.score) AS avgScore, count(c) AS n
+    SET k.avg_score = avgScore,
+        k.cleaned_count = n
+    """
+    driver.execute_query(cypher, {"rids": rids})
+
+
 count_q = """
 MATCH (r:Tweet)
 WHERE NOT (r)-[:HAS_CLEANED]->(:CleanedTweet)
@@ -349,8 +364,9 @@ while True:
             "score": score,
         })
 
-    for i in range(0, len(prepared), 200):
-        write_cleaned_tweets(prepared[i:i+200])
+    write_cleaned_tweets(prepared)
+    touched_rids = [p["rid"] for p in prepared]
+    update_keyword_averages_for_rids(touched_rids)
 
     total_processed += len(prepared)
     page += 1
