@@ -1,6 +1,7 @@
 # Brian Csehoski - Whole File
 
 import tkinter as tk
+from tkinter import ttk
 from neo4j import GraphDatabase
 
 URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
@@ -11,13 +12,23 @@ class AdminScreen:
         self.master = master
         self.master.title("Admin Screen")
 
-        self.master.geometry("960x780")
+        self.master.geometry("600x500")
         self.master.configure(bg="#ADD8E6")
 
         self.frame = tk.Frame(master, bg="#ADD8E6", padx=20, pady=20)
         self.frame.pack(expand=True, fill=tk.BOTH)
 
         tk.Label(self.frame, text="Welcome to the Admin Screen", font=("Helvetica", 24), bg="#ADD8E6").pack(pady=20)
+
+        # new control row with combobox for view selection
+        control_frame = tk.Frame(self.frame, bg="#ADD8E6")
+        control_frame.pack(fill=tk.X, pady=(0,10))
+        self.view_combo = ttk.Combobox(control_frame,
+                                       values=["Original", "Ascending Frequency", "Descending Frequency"],
+                                       state="readonly", width=24)
+        self.view_combo.current(0)
+        self.view_combo.pack(side=tk.TOP, padx=8)
+        self.view_combo.bind("<<ComboboxSelected>>", lambda e: self.refresh_output())
 
         text_frame = tk.Frame(self.frame)
         text_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
@@ -63,8 +74,30 @@ class AdminScreen:
             driver.close()
         
 
+        self.unscored_tweets_ascending = sorted(self.unscored_tweets, key=lambda wf: wf[1], reverse=False)
+        self.unscored_tweets_descending = sorted(self.unscored_tweets, key=lambda wf: wf[1], reverse=True)
+
         for word, frequency in self.unscored_tweets:
             self.output_text.insert(tk.END, f"Word: {word} | Frequency: {frequency}\n", ("mono", "pad"))
+        
+        self.output_text.config(state=tk.DISABLED)
+        self.refresh_output()
+
+    # refresh handler for combobox
+    def refresh_output(self):
+        selection = self.view_combo.get()
+        if selection == "Original":
+            data = self.unscored_tweets
+        elif selection == "Ascending Frequency":
+            data = self.unscored_tweets_ascending
+        else:
+            data = self.unscored_tweets_descending
+
+        self.output_text.config(state=tk.NORMAL)
+        self.output_text.delete("1.0", tk.END)
+        for word, frequency in data:
+            self.output_text.insert(tk.END, f"Word: {word} | Frequency: {frequency}\n", ("mono", "pad"))
+        self.output_text.config(state=tk.DISABLED)
 
 
 
