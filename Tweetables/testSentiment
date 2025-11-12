@@ -1,7 +1,21 @@
-def testSentiment (sentiment_dict,):
+import unittest
+from analyze_sentiment import analyze_sentiment, sentiment_dict
 
-count = 0
-valid = 0
-results = []
+class TestSentiment(unittest.TestCase):
+  def test_dictionary(self):
+    for word ,score in sentiment_dict.items():
+      label, final_score = analyze_sentiment([word])
+        
+      if score > 0:
+         expected = "positive"
+      elif score < 0:
+         expected = "negative"
+      else:
+         expected = "neutral"
 
-for word, true_label in true
+      with self.subTest(word=word):
+         self.assertEqual(label, expected, f"Expected {expected} for entity '{word}', instead got {label}")
+         self.assertEqual(score, final_score, f"Word '{word}' score mismatch.")
+
+if __name__ == "__main__":
+    unittest.main()
