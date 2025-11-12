@@ -1,5 +1,5 @@
 #!/bin/bash
-
+cd "$(dirname "$0")"
 
 #install_mac.command: Tweetables Mac Installer 
 #Purpose: Installs and launches application on macOS by creating VE, installing all packages, and running automatically
