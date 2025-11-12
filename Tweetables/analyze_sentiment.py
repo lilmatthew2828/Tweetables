@@ -263,11 +263,8 @@ def format_cleaned_text(tokens: List[str]) -> str:
     return " ".join(tokens)
 
 
-<<<<<<< HEAD
 # ---------- Load, process, save ----------
 # (Replaced: file I/O → Neo4j integration) All new code done by Aris Hill
-=======
->>>>>>> 1d66cc8da7b3d2518dd41facff9412f281fa4b8b
 from neo4j import GraphDatabase
 
 URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
@@ -345,20 +342,12 @@ def write_cleaned_tweets(rows):
     cypher = """
     UNWIND $rows AS row
     MATCH (r:Tweet) WHERE elementId(r) = row.rid
-<<<<<<< HEAD
-    MERGE (r)-[:HAS_CLEANED]->(c:CleanedTweet)
-    SET  c.cleaned_tweet = row.clean,
-     c.tokens       = row.tokens,
-     c.sentiment    = row.label,
-     c.score        = row.score
-=======
     MERGE (c:CleanedTweet { cleaned_tweet: row.clean })
     SET c.tokens            = row.tokens,
         c.sentiment         = row.label,
         c.score             = row.score,
         c.nonScoredWordFreq = row.non_scored_word_freq  
     MERGE (r)-[:HAS_CLEANED]->(c)
->>>>>>> 1d66cc8da7b3d2518dd41facff9412f281fa4b8b
     """
     driver.execute_query(cypher, {"rows": rows})
 
