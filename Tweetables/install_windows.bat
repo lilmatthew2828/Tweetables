@@ -1,6 +1,6 @@
 REM Tweetables Windows Installer 
 REM Purpose: Creates virtual environement, installs required Python packes, and lauches the app with a double click
-REM Creator: Day Ekoi Fall 25'
+REM Creator: Day Ekoi 
 
     @echo off
     echo ____________________________________
@@ -25,11 +25,19 @@ REM Step 3: Install Project Dependencies
     pip install --upgrade pip
     pip install -r requirements.txt
 
-REM Step 4: Installation Complete Twetables App is able to be launched (Main.py is the entry point)
+REM Step 4: Verification of .env file
+
+    if not exist ".env" 
+    (    echo No .env file found
+         echo Make sure the .env file exists in the folder before launching.
+         pause
+         exit /b
+    )
+
+REM Step 5: Installation Complete 
 
     echo Installation Complete.
     echo Launching Tweetables...
     python Main.py
 
-REM Step 5: Slight pause/delay so the command window doesnt immediately close and lets user read any output.
     pause
