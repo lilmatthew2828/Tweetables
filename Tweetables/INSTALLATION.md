@@ -11,11 +11,15 @@ Tweetables requires:
 - Neo4j Aura database
 - Python 3.10+ is required on both Windows or macOS
 
+*before* installation
+
+#### Notes:
+
 - Do **NOT** modify delete the *venv* folder after installation
 - Internet connection is required the first time for dependecy installation
 - You do not need to install Neo4j but keep Neo4j running whenever you want to use Tweetables. If it is not running, the application will not start
 
-*before* installation
+
 
 ### 1. Python 3.10+
 Download Python from: https://www.python.org/downloads/
