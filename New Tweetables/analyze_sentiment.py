@@ -318,6 +318,21 @@ def write_cleaned_tweets(rows):
     MERGE (r)-[:HAS_CLEANED]->(c)
     """
     driver.execute_query(cypher, {"rows": rows})
+# NEW: Added avgScore and count attributes to keyword node - Aris Hill
+def update_keyword_averages_for_rids(rids):
+    if not rids:
+        return
+    cypher = """
+    UNWIND $rids AS rid
+    MATCH (t:Tweet) WHERE elementId(t) = rid
+    MATCH (t)-[:MENTIONS]->(k:Keyword)
+    WITH DISTINCT k
+    MATCH (k)<-[:MENTIONS]-(t2:Tweet)-[:HAS_CLEANED]->(c:CleanedTweet)
+    WITH k, avg(c.score) AS avgScore, count(c) AS n
+    SET k.avg_score   = avgScore,
+        k.cleaned_count = n
+    """
+    driver.execute_query(cypher, {"rids": rids})
 
 # (Optional) quick visibility into remaining work
 count_q = """
@@ -383,9 +398,15 @@ while True:
     for i in range(0, len(prepared), 200):
         write_cleaned_tweets(prepared[i:i+200])
 
+    #  NEW: update keyword averages for all tweets in this page
+    touched_rids = [p["rid"] for p in prepared]
+    update_keyword_averages_for_rids(touched_rids)
+
+
     total_processed += len(prepared)
     page += 1
     print(f"Processed page {page}: {len(prepared)} tweets (total {total_processed})")
 
 driver.close()
+
 print(f"Analysis complete! Wrote {total_processed} cleaned tweets to Neo4j. Full results saved to '{OUT_PATH}'.")
