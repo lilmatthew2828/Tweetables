@@ -36,6 +36,8 @@ class AdminScreen:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         self.output_text = tk.Text(text_frame, wrap=tk.WORD, height=12, font=("Arial", 12), yscrollcommand=scrollbar.set)
+
+        # this is the same styling that was used in th main GUI so I just pulled it in
         # match the mono/clean aesthetic
         self.output_text.configure(font=("Consolas", 11), background="#FFFFFF", foreground="#111827", insertbackground="#111827", relief=tk.FLAT, bd=0)
 
