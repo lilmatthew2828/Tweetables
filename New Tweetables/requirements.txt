@@ -1,0 +1,6 @@
+# Requirements.txt file for Script Installation for Xpendables created by Day Ekoi 
+
+nltk
+tweepy
+python-dotenv
+cryptography
