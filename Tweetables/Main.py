@@ -10,6 +10,7 @@ import bcrypt
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 import re
+from admin_screen import AdminScreen
 
 load_dotenv()
 
@@ -70,7 +71,11 @@ class LoginScreen:
             self.message_label.config(text="Login successful!", fg="green")
             global CURRENT_USER
             CURRENT_USER = username
-            self.open_sentiment_analysis()
+            # Brian Csehoski - Reroute login based on admin or regular user
+            if username == "admin":
+                self.open_admin_screen()
+            else:
+                self.open_sentiment_analysis()
         else:
             self.message_label.config(text="Username or password is wrong", fg="red")
             self.username_entry.delete(0, tk.END)
@@ -241,6 +246,13 @@ class LoginScreen:
         self.master.destroy()
         root = tk.Tk()
         app = SentimentAnalysisApp(root)
+        root.mainloop()
+    
+    # Brian Csehoski - Make new method to open admin screen
+    def open_admin_screen(self):
+        self.master.destroy()
+        root = tk.Tk()
+        app = AdminScreen(root)
         root.mainloop()
 
 
