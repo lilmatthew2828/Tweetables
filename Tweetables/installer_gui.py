@@ -126,14 +126,63 @@ if cmd:
   run_cmd(cmd)
 
 # Update of progress bar
-update_progress(progress, percent_label, i, total_steps)
+  update_progress(progress, percent_label, i, total_steps)
 
-# Success message when installed 
-messagebox.showinfo("Tweetables successfuly installed. App Launching...)
-status_label.config(text="Installation Complete.")
+messagebox.showinfo("Tweetables successfully installed. App launching...)
+status_label.config(text="Installation complete.")
 
 # Start Installation Function
 # This is triggered when user double clicks Install button
+def start_install();
+  install_button.config(state="disabled")
+  status_label.config(text= Starting Installation...")
+
+# Run installler in background to avoid GUI freezing
+thread = threading.Thread(target=run_install)
+thread.start()
+
+def run_install(); #Detects OS and chooses correct installer
+os_name = platform.system()
+
+if os_name == "Darwin": # Darwin is macOS
+  install_mac(progress, status_label, percent_label)
+elif os_name == "Windows":
+  install_windows(progress, status_label, percent_label)
+else:
+  messagebox.showerror("OS not supported", "This installer only supports macOS or Windows.")
+  
+  install_button.config(state="normal")
+
+
+# GUI Theme
+
+app = tk.TK()
+app.title("Tweetables Installer")
+app.geometry("430x560")
+app.configure(bg="black")
+app.resizable(False, False)
+
+# Logo
+
+logo_frame = tk.Frame(app, bg="black")
+logo_frame.pack(pady=20)
+
+if Path("Xpendables.png").exists():
+  logo_img = tk.PhotoImage(file="Xpendables.png")
+  tk.Label(logo_frame, image=logo_img, bg="black").pack()
+else
+  tk.Label(app, text="Xpendables missing]",
+           fg="white", bg="black",
+           font=("Arial", 14, "italic")).pack(pady=10)
+                  
+
+
+
+                    
+
+
+                    
+                    
 
 
             
