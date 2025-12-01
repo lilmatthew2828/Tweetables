@@ -12,7 +12,7 @@ NLTK_DIR   = os.path.join(SCRIPT_DIR, "nltk_data")
 os.makedirs(NLTK_DIR, exist_ok=True)
 
 # Image used on Login/Signup
-LOGO_PATH = os.path.join(BASE_DIR, "unnamed.png")
+LOGO_PATH = os.path.join(BASE_DIR, "Xpendables.png")
 
 # Neo4j config (you can swap to env-based later)
 URI  = "neo4j+s://f1c11ed7.databases.neo4j.io"
