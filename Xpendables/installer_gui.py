@@ -183,7 +183,7 @@ def start_install():
 
 app = tk.Tk()
 app.title("Tweetables Installer")
-app.geometry("880x860")
+app.geometry("420x520") # 860x860 is too big for a simple installer screen
 app.configure(bg="black")
 app.resizable(False, False)
 
@@ -197,7 +197,7 @@ logo_frame.pack(pady=20)
 
 # Use *project-relative* path instead of a hard-coded absolute Windows path
 BASE_DIR = Path(__file__).resolve().parent
-logo_path = BASE_DIR / "Xpendables.png"   # put Xpendables.png in same folder as installer_gui.py
+logo_path = BASE_DIR / "Xpendables.png"   
 
 if logo_path.exists():
     try:
