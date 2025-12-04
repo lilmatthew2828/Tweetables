@@ -90,6 +90,7 @@ def install_mac(progress, status_label, percent_label):
 
     messagebox.showinfo("Success", "Tweetables successfully installed. Launching app...")
     status_label.config(text="Installation complete.")
+    app.destroy(500, app.destroy)
 
 
 # ---------- Windows installer ----------
@@ -146,6 +147,7 @@ def install_windows(progress, status_label, percent_label):
 
     messagebox.showinfo("Success", "Tweetables successfully installed. Launching app...")
     status_label.config(text="Installation complete.")
+    app.destroy(500, app.destroy)
 
 
 # ---------- OS selection / threading ----------
