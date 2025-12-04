@@ -14,10 +14,11 @@ REM If venv exists, launch app
 if exist "venv\Scripts\python.exe" (
     echo Launching Tweetables...
     start "" "venv\Scripts\python.exe" Main.py
-    exit /b    REM ← KEEP THIS
+    exit /b    
 )
 
 REM Otherwise run GUI installer
+
     echo Launching Tweetables Installer GUI...
     start "" python installer_gui.py
     exit /b
