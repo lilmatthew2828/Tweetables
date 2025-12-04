@@ -51,7 +51,7 @@ def install_mac(progress, status_label, percent_label):
         ("Upgrading pip...", "venv/bin/python -m pip install --upgrade pip"),
         ("Installing dependencies...", "venv/bin/python -m pip install -r requirements.txt"),
         ("Checking .env file...", None),
-        ("Launching Tweetables...", "venv/bin/python Main.py"),
+        ("Launching Tweetables...", None),
     ]
     total_steps = len(steps)
 
@@ -89,6 +89,7 @@ def install_mac(progress, status_label, percent_label):
                 return
 
     messagebox.showinfo("Success", "Tweetables successfully installed. Launching app...")
+    subprocess.Popen(["venv/bin/python", "Main.py"])
     status_label.config(text="Installation complete.")
     app.destroy(500, app.destroy)
 
@@ -106,7 +107,7 @@ def install_windows(progress, status_label, percent_label):
         ("Upgrading pip...", "venv\\Scripts\\python.exe -m pip install --upgrade pip"),
         ("Installing dependencies...", "venv\\Scripts\\python.exe -m pip install -r requirements.txt"),
         ("Checking .env file...", None),
-        ("Launching Tweetables...", "venv\\Scripts\\python.exe Main.py"),
+        ("Launching Tweetables...", None),
     ]
 
     total_steps = len(steps)
@@ -146,6 +147,7 @@ def install_windows(progress, status_label, percent_label):
                 return
 
     messagebox.showinfo("Success", "Tweetables successfully installed. Launching app...")
+    subprocess.Popen(["venv\\Scripts\\python.exe", "Main.py"], shell=True)
     status_label.config(text="Installation complete.")
     app.destroy(500, app.destroy)
 
