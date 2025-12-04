@@ -3,12 +3,13 @@ REM Purpose: Creates virtual environement, installs required Python packes, and 
 REM Creator: Day Ekoi Fall 25'
 
 
-  @echo off
-  cd /d "%~dp0"
-
 REM _______________________________________________________________________
 REM Iteration 5 Final Windows Installer Script - Updated with installer GUI
 REM _______________________________________________________________________
+
+
+  @echo off
+  cd /d "%~dp0"
 
 echo Launching Tweetables Installer GUI...
 python installer_gui.py
