@@ -11,9 +11,9 @@ REM _______________________________________________________________________
   @echo off
   cd /d "%~dp0"
 
-echo Launching Tweetables Installer GUI...
-python installer_gui.py
-exit /b
+    echo Launching Tweetables Installer GUI...
+    python installer_gui.py
+    exit /b
 
 REM _____________________________________________________
 REM Iteration 4 Installer original Windows Installer Script
