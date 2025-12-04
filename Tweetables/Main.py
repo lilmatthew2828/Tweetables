@@ -24,8 +24,16 @@ NLTK_DIR = os.path.join(SCRIPT_DIR, "nltk_data")
 os.makedirs(NLTK_DIR, exist_ok=True)
 
 # We will evenutally need to remove this and like save it somewhere safe but these are here for now
-URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
-AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
+# URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
+#AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
+
+#NEO4J integration: load credentials from .env
+
+URI = os.getenv("NEO4J_URI")
+USER = os.getenv("NEO4J_USER")
+PASSWORD = os.getenv("NEO4J_PASSWORD")
+
+AUTH = (USER, PASSWORD)
 
 CURRENT_USER = None
 
