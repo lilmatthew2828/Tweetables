@@ -1,29 +1,44 @@
-#!/bin/bash
-
 
 #install_mac.command: Tweetables Mac Installer 
 #Purpose: Installs and launches application on macOS by creating VE, installing all packages, and running automatically
 #Creator: Day Ekoi
 
+# ___________________________________________________________________
+# Iteration 5 Final Mac Installer Script - Updated with installer GUI
+# ___________________________________________________________________
+
+#!/bin/bash
+cd "$(dirname "$0")"
+
+echo "Launching Tweetables Installer GUI..."
+python3 installer_gui.py
+exit 0
+
+
+# ____________________________________________________
+# Iteration 4 Installer original Mac Installer Script
+# Kept for Version History 
+# ____________________________________________________
+
 
 #Step 1: Create a VE called 'venv'
 
-    echo "Please Wait, Creating Virtual Environment..."
-    python3 -m venv venv
+#    echo "Please Wait, Creating Virtual Environment..."
+#   python3 -m venv venv
 
 #Step 2: Activate the VE
 
-    echo "Activating Virtual Environment..."
-    source venv/bin/activate
+#   echo "Activating Virtual Environment..."
+#    source venv/bin/activate
 
 #Step 3: Install dependencies from requirements.txt
 
-    echo "Installing required Python packages..."
-    pip install --upgrade pip
-    pip install -r requirements.txt
+#  echo "Installing required Python packages..."
+#    pip install --upgrade pip
+#    pip install -r requirements.txt
 
 #Step 4: Installation complete and launching app
 
-    echo "Installation complete."
-    echo "Launching Tweetables..."
-    python3 Main.py
+#    echo "Installation complete."
+#    echo "Launching Tweetables..."
+#    python3 Main.py
