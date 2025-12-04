@@ -1,23 +1,17 @@
 # Brian Csehoski - Whole File
-# Updated by Day E. - Fixing Neo4j connection
+
 
 import tkinter as tk
 from tkinter import ttk
 from neo4j import GraphDatabase
-import os
-from dotenv import load_dotenv
+
 
 # Load .env file
 load_dotenv()
 
-URI = os.getenv("NEO4J_URI")
-USER = os.getenv("NEO4J_USER")
-PASSWORD = os.getenv("NEO4J_PASSWORD")
 
-AUTH = (USER, PASSWORD)
-
-# URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
-# AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
+URI = "neo4j+s://f1c11ed7.databases.neo4j.io"
+ AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
 
 class AdminScreen:
     def __init__(self, master):
