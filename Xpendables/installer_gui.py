@@ -48,10 +48,10 @@ def install_mac(progress, status_label, percent_label):
         ("Checking for existing virtual environment...", None),
         ("Creating virtual environment...", "python3 -m venv venv"),
         ("Activating virtual environment...", "source venv/bin/activate"),
-        ("Upgrading pip...", "venv/bin/python3 -m pip install --upgrade pip"),
-        ("Installing dependencies...", "venv/bin/python3 -m pip install -r requirements.txt"),
+        ("Upgrading pip...", "venv/bin/python -m pip install --upgrade pip"),
+        ("Installing dependencies...", "venv/bin/python -m pip install -r requirements.txt"),
         ("Checking .env file...", None),
-        ("Launching Tweetables...", "venv/bin/python3 Main.py"),
+        ("Launching Tweetables...", "venv/bin/python Main.py"),
     ]
     total_steps = len(steps)
 
