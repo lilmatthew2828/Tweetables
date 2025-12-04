@@ -241,7 +241,7 @@ tk.Label(
 # Status label
 status_label = tk.Label(
     app,
-    text="Ready to install Tweetables.",
+    text="Ready to install Tweetables. Press Button.",
     fg="white",
     bg="black",
     font=("Arial", 11),
