@@ -1,6 +1,3 @@
-  @echo off
-  cd /d "%~dp0"
-
 REM Tweetables Windows Installer 
 REM Purpose: Creates virtual environement, installs required Python packes, and lauches the app with a double click
 REM Creator: Day Ekoi Fall 25'
@@ -10,10 +7,19 @@ REM _______________________________________________________________________
 REM Iteration 5 Final Windows Installer Script - Updated with installer GUI
 REM _______________________________________________________________________
 
+@echo off
+cd /d "%~dp0"
 
+REM If venv exists, launch app
+if exist "venv\Scripts\python.exe" (
+    echo Launching Tweetables...
+    start "" "venv\Scripts\python.exe" Main.py
+    exit /b    REM ← KEEP THIS
+)
 
+REM Otherwise run GUI installer
     echo Launching Tweetables Installer GUI...
-    python installer_gui.py
+    start "" python installer_gui.py
     exit /b
 
 
