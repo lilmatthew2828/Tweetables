@@ -6,8 +6,19 @@ REM Creator: Day Ekoi Fall 25'
   @echo off
   cd /d "%~dp0"
 
+# _______________________________________________________________________
+# Iteration 5 Final Windows Installer Script - Updated with installer GUI
+# _______________________________________________________________________
+
+echo Launching Tweetables Installer GUI...
+python installer_gui.py
+exit /b
+
 REM _____________________________________________________
-REM 
+REM Iteration 4 Installer original Windows Installer Script
+REM Kept for Version History 
+REM _____________________________________________________
+
 REM    echo ____________________________________
 REM    echo Tweetables Installer (Windows Only)
 REM    echo ____________________________________
