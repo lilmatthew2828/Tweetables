@@ -15,8 +15,15 @@ os.makedirs(NLTK_DIR, exist_ok=True)
 LOGO_PATH = os.path.join(BASE_DIR, "Xpendables.png")
 
 # Neo4j config (you can swap to env-based later)
-URI  = "neo4j+s://f1c11ed7.databases.neo4j.io"
-AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
+# URI  = "neo4j+s://f1c11ed7.databases.neo4j.io"
+# AUTH = ("neo4j", "79eNFmepYfcx2ganEpeoEpVeny-Is0lKLXok6sHQrSs")
+
+# Needed .env based Neo4j configurartion - Day E.
+URI  = os.getenv("NEO4J_URI")
+USER = os.getenv("NEO4J_USER")
+PASSWORD = os.getenv("NEO4J_PASSWORD")
+AUTH = (USER, PASSWORD)
+
 
 def subprocess_env():
     env = dict(os.environ)
