@@ -10,6 +10,14 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
+# If venv exists, skip installer and launch the app directly
+if [ -d "venv" ]; then
+    echo "Launching Tweetables..."
+    venv/bin/python Main.py &
+    exit 0
+fi
+
+# Else, run GUI installer 
 echo "Launching Tweetables Installer GUI..."
 python3 installer_gui.py
 exit 0
