@@ -8,12 +8,15 @@
 # ___________________________________________________________________
 
 #!/bin/bash
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" # Go to directory with script
+
+echo "Launching Tweetables..."
+
+VENV="./venv/bin/python3"
 
 # If venv exists, skip installer and launch the app directly
 if [ -d "venv" ]; then
-    echo "Launching Tweetables..."
-    venv/bin/python Main.py &
+    "$VENV" Main.py
     exit 0
 fi
 
