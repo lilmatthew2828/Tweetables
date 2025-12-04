@@ -90,7 +90,7 @@ def install_mac(progress, status_label, percent_label):
 
     messagebox.showinfo("Success", "Tweetables successfully installed. Launching app...")
     subprocess.Popen(["venv/bin/python", "Main.py"])
-    app.after(500, app.destroy)
+    app.after(500, app.destroy) # Closes the installer window immedietely after
 
 
 # ---------- Windows installer ----------
