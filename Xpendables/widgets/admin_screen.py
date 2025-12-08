@@ -12,20 +12,20 @@ class AdminScreen(tk.Toplevel):
         super().__init__(master)              # this *is* the window now
         self.title("Admin Screen")
         self.geometry("600x500")
-        self.configure(bg="#ADD8E6")
+        self.configure(bg="#000000")
 
-        self.frame = tk.Frame(self, bg="#ADD8E6", padx=20, pady=20)
+        self.frame = tk.Frame(self, bg="#000000", padx=20, pady=20)
         self.frame.pack(expand=True, fill=tk.BOTH)
 
         tk.Label(
             self.frame,
             text="Welcome to the Admin Screen",
             font=("Helvetica", 24),
-            bg="#ADD8E6"
+            bg="#000000"
         ).pack(pady=20)
 
         # --- control row with combobox for view selection ---
-        control_frame = tk.Frame(self.frame, bg="#ADD8E6")
+        control_frame = tk.Frame(self.frame, bg="#000000")
         control_frame.pack(fill=tk.X, pady=(0, 10))
 
         self.view_combo = ttk.Combobox(
@@ -40,7 +40,7 @@ class AdminScreen(tk.Toplevel):
                              lambda e: self.refresh_output())
 
         # --- text area + scrollbar ---
-        text_frame = tk.Frame(self.frame, bg="#ADD8E6")
+        text_frame = tk.Frame(self.frame, bg="#000000")
         text_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
         scrollbar = tk.Scrollbar(text_frame)
@@ -52,8 +52,8 @@ class AdminScreen(tk.Toplevel):
             height=12,
             font=("Consolas", 11),
             yscrollcommand=scrollbar.set,
-            background="#FFFFFF",
-            foreground="#111827",
+            background="#000000",
+            foreground="#FFFFFF",
             insertbackground="#111827",
             relief=tk.FLAT,
             bd=0,
