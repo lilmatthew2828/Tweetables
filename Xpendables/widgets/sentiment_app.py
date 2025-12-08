@@ -4,7 +4,7 @@ from tkinter import ttk   # <-- NEW
 from neo4j import GraphDatabase
 from settings import SCRIPT_DIR, subprocess_env, URI, AUTH
 from app_state import state
-from widgets.admin_screen import AdminScreen  # -- import our new widget
+#from widgets.admin_screen import AdminScreen  # -- import our new widget
 
 
 class SentimentAnalysisApp:
@@ -150,13 +150,13 @@ class SentimentAnalysisApp:
             btnf,
             text="History",
             command=self.open_history_viewer,
-        ).grid(row=2, column=0, pady=8)
+        ).grid(row=2, column=0, columnspan=2, pady=8)
 
-        ttk.Button(
-            btnf,
-            text="Admin",
-            command=self.open_admin_screen,
-        ).grid(row=2, column=1, pady=8)
+        #ttk.Button(
+        #    btnf,
+        #    text="Admin",
+        #    command=self.open_admin_screen,
+        #).grid(row=2, column=1, pady=8)
 
     # --- helpers identical to your current logic (unchanged) ---
     def _append(self, t, *tags):
@@ -384,9 +384,9 @@ class SentimentAnalysisApp:
 
         threading.Thread(target=_connect, daemon=True).start()
 
-    def open_admin_screen(self):
-        """
-        Open the AdminScreen window that shows UNSCORED_WORD frequencies.
-        AdminScreen is a Toplevel, so this just pops a new window over the main app.
-        """
-        AdminScreen(self.master)
+    #def open_admin_screen(self):
+    #    """
+    #    Open the AdminScreen window that shows UNSCORED_WORD frequencies.
+    #    AdminScreen is a Toplevel, so this just pops a new window over the main app.
+    #    """
+    #    AdminScreen(self.master)

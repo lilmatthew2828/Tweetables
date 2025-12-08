@@ -7,9 +7,9 @@ from neo4j import GraphDatabase
 from settings import URI, AUTH   # <-- use shared settings
 
 
-class AdminScreen(tk.Toplevel):
-    def __init__(self, master):
-        super().__init__(master)              # this *is* the window now
+class AdminScreen(tk.Tk):
+    def __init__(self, master=None):
+        super().__init__()
         self.title("Admin Screen")
         self.geometry("600x500")
         self.configure(bg="#000000")

@@ -1,6 +1,6 @@
 # widgets/signup_window.py
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import tweepy, bcrypt, os
 from cryptography.fernet import Fernet
@@ -16,9 +16,37 @@ class SignupWindow:
         self.win = tk.Toplevel(master)
         self.win.title("Sign Up")
         self.win.geometry("450x520")
-        self.win.configure(bg="#ADD8E6")
+        self.win.configure(bg="#000000")
 
-        frame = tk.Frame(self.win, bg="#ADD8E6", padx=20, pady=20)
+        # ----- ttk DARK THEME STYLING -----
+        style = ttk.Style(self.win)
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
+
+        style.configure(
+            "TLabel",
+            background="#000000",
+            foreground="white",
+            font=("Arial", 11),
+        )
+        style.configure(
+            "TEntry",
+            fieldbackground="#1E1E1E",
+            foreground="white",
+        )
+        style.configure(
+            "TButton",
+            background="#222222",
+            foreground="white",
+        )
+        style.map(
+            "TButton",
+            background=[("active", "#444444")],
+        )
+
+        frame = tk.Frame(self.win, bg="#000000", padx=20, pady=20)
         frame.pack(expand=True)
 
         # Logo
@@ -35,18 +63,18 @@ class SignupWindow:
         row = 1
         def L(txt):
             nonlocal row
-            tk.Label(frame, text=txt, font=("Arial", 12), bg="#ADD8E6")\
+            ttk.Label(frame, text=txt)\
               .grid(row=row, column=0, sticky="w", pady=5)
 
-        L("New Username:");   username = tk.Entry(frame, font=("Arial", 12)); username.grid(row=row, column=1, padx=10); row += 1
-        L("New Password:");   pw1      = tk.Entry(frame, show="*", font=("Arial", 12)); pw1.grid(row=row, column=1, padx=10); row += 1
-        L("Re-enter Password:"); pw2   = tk.Entry(frame, show="*", font=("Arial", 12)); pw2.grid(row=row, column=1, padx=10); row += 1
+        L("New Username:");   username = ttk.Entry(frame, font=("Arial", 12), width=30); username.grid(row=row, column=1, padx=10); row += 1
+        L("New Password:");   pw1      = ttk.Entry(frame, show="*", font=("Arial", 12), width=30); pw1.grid(row=row, column=1, padx=10); row += 1
+        L("Re-enter Password:"); pw2   = ttk.Entry(frame, show="*", font=("Arial", 12), width=30); pw2.grid(row=row, column=1, padx=10); row += 1
 
-        L("API Key:");        api_key  = tk.Entry(frame, show="*", font=("Arial", 12)); api_key.grid(row=row, column=1, padx=10); row += 1
-        L("API Secret:");     api_sec  = tk.Entry(frame, show="*", font=("Arial", 12)); api_sec.grid(row=row, column=1, padx=10); row += 1
-        L("Access Token:");   acc_tok  = tk.Entry(frame, show="*", font=("Arial", 12)); acc_tok.grid(row=row, column=1, padx=10); row += 1
-        L("Access Secret:");  acc_sec  = tk.Entry(frame, show="*", font=("Arial", 12)); acc_sec.grid(row=row, column=1, padx=10); row += 1
-        L("Bearer Token:");   bearer   = tk.Entry(frame, show="*", font=("Arial", 12)); bearer.grid(row=row, column=1, padx=10); row += 1
+        L("API Key:");        api_key  = ttk.Entry(frame, show="*", font=("Arial", 12), width=30); api_key.grid(row=row, column=1, padx=10); row += 1
+        L("API Secret:");     api_sec  = ttk.Entry(frame, show="*", font=("Arial", 12), width=30); api_sec.grid(row=row, column=1, padx=10); row += 1
+        L("Access Token:");   acc_tok  = ttk.Entry(frame, show="*", font=("Arial", 12), width=30); acc_tok.grid(row=row, column=1, padx=10); row += 1
+        L("Access Secret:");  acc_sec  = ttk.Entry(frame, show="*", font=("Arial", 12), width=30); acc_sec.grid(row=row, column=1, padx=10); row += 1
+        L("Bearer Token:");   bearer   = ttk.Entry(frame, show="*", font=("Arial", 12), width=30); bearer.grid(row=row, column=1, padx=10); row += 1
 
         def save():
             u = username.get().strip()
@@ -121,7 +149,6 @@ class SignupWindow:
             messagebox.showinfo("Success", "Account created. You can log in now.")
             self.win.destroy()
 
-        tk.Button(
-            frame, text="Sign Up", command=save,
-            font=("Arial", 12), bg="white", fg="black", padx=10, pady=5
+        ttk.Button(
+            frame, text="Sign Up", command=save
         ).grid(row=row, column=0, columnspan=2, pady=10)
