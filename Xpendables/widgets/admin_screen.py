@@ -20,8 +20,9 @@ class AdminScreen(tk.Toplevel):
         tk.Label(
             self.frame,
             text="Welcome to the Admin Screen",
-            font=("Helvetica", 24),
-            bg="#000000"
+            font=("Helvetica", 24, "bold"),
+            background="#000000",
+            foreground="white"
         ).pack(pady=20)
 
         # --- control row with combobox for view selection ---

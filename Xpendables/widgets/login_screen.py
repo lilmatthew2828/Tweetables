@@ -1,5 +1,6 @@
 # widgets/login_screen.py
 import tkinter as tk
+from tkinter import ttk
 from PIL import Image, ImageTk
 import bcrypt
 from neo4j import GraphDatabase
@@ -12,9 +13,32 @@ class LoginScreen:
         self.master = master
         self.master.title("Login")
         self.master.geometry("550x650")
-        self.master.configure(bg="#00BFFF")
+        self.master.configure(bg="#000000")
 
-        self.frame = tk.Frame(master, bg="#ADD8E6", padx=20, pady=20)
+        # ----- ttk DARK THEME STYLING -----
+        style = ttk.Style(self.master)
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
+
+        style.configure(
+            "TLabel",
+            background="#000000",
+            foreground="white",
+            font=("Arial", 11),
+        )
+        style.configure(
+            "TButton",
+            background="#222222",
+            foreground="white",
+        )
+        style.map(
+            "TButton",
+            background=[("active", "#444444")],
+        )
+
+        self.frame = tk.Frame(master, bg="#000000", padx=20, pady=20)
         self.frame.pack(expand=True)
 
         # Logo
@@ -26,25 +50,21 @@ class LoginScreen:
             print("Logo load error:", e)
 
         # Form
-        tk.Label(self.frame, text="Username:", font=("Arial", 12), bg="#ADD8E6")\
-          .grid(row=1, column=0, sticky="w", pady=5)
-        self.username_entry = tk.Entry(self.frame, font=("Arial", 12))
+        ttk.Label(self.frame, text="Username:").grid(row=1, column=0, sticky="w", pady=5)
+        self.username_entry = ttk.Entry(self.frame, font=("Arial", 12), width=30)
         self.username_entry.grid(row=1, column=1, pady=5, padx=10)
 
-        tk.Label(self.frame, text="Password:", font=("Arial", 12), bg="#ADD8E6")\
-          .grid(row=2, column=0, sticky="w", pady=5)
-        self.password_entry = tk.Entry(self.frame, font=("Arial", 12), show="*")
+        ttk.Label(self.frame, text="Password:").grid(row=2, column=0, sticky="w", pady=5)
+        self.password_entry = ttk.Entry(self.frame, font=("Arial", 12), show="*", width=30)
         self.password_entry.grid(row=2, column=1, pady=5, padx=10)
 
-        self.message_label = tk.Label(self.frame, text="", fg="red", bg="#ADD8E6", font=("Arial", 10))
+        self.message_label = ttk.Label(self.frame, text="", foreground="#FFFFFF")
         self.message_label.grid(row=3, column=0, columnspan=2, pady=5)
 
-        tk.Button(self.frame, text="Login", command=self.validate_login,
-                  font=("Arial", 12), bg="white", fg="black", padx=10, pady=5)\
+        ttk.Button(self.frame, text="Login", command=self.validate_login)\
           .grid(row=4, column=0, columnspan=2, pady=10)
 
-        tk.Button(self.frame, text="Sign Up", command=self.open_signup,
-                  font=("Arial", 12), bg="white", fg="black", padx=10, pady=5)\
+        ttk.Button(self.frame, text="Sign Up", command=self.open_signup)\
           .grid(row=5, column=0, columnspan=2, pady=10)
 
     # --- actions ---
@@ -53,11 +73,11 @@ class LoginScreen:
         password = self.password_entry.get()
 
         if self.check_credentials(username, password):
-            self.message_label.config(text="Login successful!", fg="green")
+            self.message_label.config(text="Login successful!", foreground="#FFFFFF")
             state.CURRENT_USER = username
             self.open_sentiment_analysis()
         else:
-            self.message_label.config(text="Username or password is wrong", fg="red")
+            self.message_label.config(text="Username or password is wrong", foreground="#FFFFFF")
             self.username_entry.delete(0, tk.END)
             self.password_entry.delete(0, tk.END)
 
