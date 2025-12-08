@@ -41,7 +41,7 @@ class AdminScreen(tk.Tk):
                              lambda e: self.refresh_output())
 
         # --- text area + scrollbar ---
-        text_frame = tk.Frame(self.frame, bg="#000000")
+        text_frame = tk.Frame(self.frame, bg="#000000", relief=tk.FLAT, bd=2, highlightbackground="white", highlightthickness=2)
         text_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
         scrollbar = tk.Scrollbar(text_frame)
@@ -106,7 +106,7 @@ class AdminScreen(tk.Tk):
         for word, frequency in self.unscored_tweets:
             self.output_text.insert(
                 tk.END,
-                f"Word: {word} | Frequency: {frequency}\n",
+                f"Word: {word.ljust(12)} | Frequency: {frequency}\n",
                 ("mono", "pad"),
             )
         self.output_text.config(state=tk.DISABLED)
@@ -126,7 +126,7 @@ class AdminScreen(tk.Tk):
         for word, frequency in data:
             self.output_text.insert(
                 tk.END,
-                f"Word: {word} | Frequency: {frequency}\n",
+                f"Word: {word.ljust(12)} | Frequency: {frequency}\n",
                 ("mono", "pad"),
             )
         self.output_text.config(state=tk.DISABLED)
