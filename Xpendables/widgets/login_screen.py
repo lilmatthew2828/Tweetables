@@ -80,6 +80,7 @@ class LoginScreen:
         if self.check_credentials(username, password):
             self.message_label.config(text="Login successful!", foreground="#FFFFFF")
             state.CURRENT_USER = username
+            # brian csehoski - login redirection
             if username == "admin":
                 self.open_admin_screen()
             else:
@@ -116,6 +117,7 @@ class LoginScreen:
         SentimentAnalysisApp(root)
         root.mainloop()
 
+    # brian csehoski
     def open_admin_screen(self):
         from widgets.admin_screen import AdminScreen
         self.master.destroy()
